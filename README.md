@@ -1,72 +1,89 @@
 # lovstudio:skill-creator
 
-![Version](https://img.shields.io/badge/version-1.2.0-CC785C)
+![Version](https://img.shields.io/badge/version-2.0.0-CC785C)
 
-Scaffold new skills for the [lovstudio/skills](https://github.com/lovstudio/skills) repo. Fork of the official [skill-creator](https://github.com/anthropics/agent-skills) with lovstudio conventions baked in.
+Scaffold new skills for the lovstudio ecosystem. Each skill is an **independent
+GitHub repo** at `lovstudio/{name}-skill`, registered in the central index at
+[`lovstudio/skills`](https://github.com/lovstudio/skills).
 
-Part of [lovstudio/skills](https://github.com/lovstudio/skills) &mdash; by [lovstudio.ai](https://lovstudio.ai)
+Part of [lovstudio skills](https://github.com/lovstudio/skills) &mdash; by [lovstudio.ai](https://lovstudio.ai)
 
 ## Install
 
 ```bash
-npx skills add lovstudio/skills --skill lovstudio:skill-creator
+git clone https://github.com/lovstudio/skill-creator-skill ~/.claude/skills/lovstudio-skill-creator
 ```
 
 ## What It Does
 
 ```
-┌──────────────────────────────────────────────────────┐
-│  You: "创建一个 any2pptx skill"                       │
-└──────────────────────┬───────────────────────────────┘
-                       │
-                       ▼
-┌──────────────────────────────────────────────────────┐
-│  init_skill.py any2pptx                              │
-│                                                      │
-│  skills/lovstudio-any2pptx/                          │
-│  ├── SKILL.md      ← AI reads this (frontmatter +   │
-│  │                    workflow + CLI reference)       │
-│  ├── README.md     ← Humans read this on GitHub      │
-│  └── scripts/      ← Python CLI scripts              │
-└──────────────────────┬───────────────────────────────┘
-                       │
-                       ▼
-┌──────────────────────────────────────────────────────┐
-│  Fill in TODOs → implement scripts → test → register │
-│  → update root README.md + CLAUDE.md                 │
-└──────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────┐
+│  You: "封装成 wcx skill"                                    │
+└────────────────────────────┬───────────────────────────────┘
+                             │
+                             ▼
+┌────────────────────────────────────────────────────────────┐
+│  init_skill.py wcx                                          │
+│                                                             │
+│  ~/lovstudio/coding/skills/wcx-skill/                       │
+│  ├── SKILL.md      ← AI reads this                          │
+│  ├── README.md     ← Humans read this on GitHub             │
+│  ├── .gitignore                                             │
+│  └── scripts/      ← Python CLI scripts                     │
+└────────────────────────────┬───────────────────────────────┘
+                             │
+                             ▼
+┌────────────────────────────────────────────────────────────┐
+│  Implement → gh repo create lovstudio/wcx-skill --push      │
+│           → PR into index/skills.yaml + index/README.md     │
+│           → symlink to ~/.claude/skills/lovstudio-wcx       │
+└────────────────────────────────────────────────────────────┘
 ```
 
 ## Quick Start
 
 ```bash
-# Scaffold a new skill
-python skills/lovstudio-skill-creator/scripts/init_skill.py any2pptx
+# Scaffold
+python3 ~/.claude/skills/lovstudio-skill-creator/scripts/init_skill.py wcx
 
-# Output:
-#   skills/lovstudio-any2pptx/
-#   ├── SKILL.md     (with TODO placeholders)
-#   ├── README.md    (with TODO placeholders)
-#   └── scripts/
+# → ~/lovstudio/coding/skills/wcx-skill/
+#     ├── SKILL.md       (TODO placeholders)
+#     ├── README.md      (version badge + install stub)
+#     ├── .gitignore
+#     └── scripts/
 ```
 
 Then:
-1. Implement scripts in `scripts/`
-2. Fill in TODOs in `SKILL.md` and `README.md`
-3. Add to root `README.md` and `CLAUDE.md`
-4. Test: `bash dev.sh lovstudio-any2pptx`
+
+1. Implement `scripts/` and fill the TODOs in `SKILL.md` / `README.md`
+2. `cd ~/lovstudio/coding/skills/wcx-skill && git init && git add -A && git commit -m "feat: initial release"`
+3. `gh repo create lovstudio/wcx-skill --public --source=. --push`
+4. Add an entry to `~/lovstudio/coding/skills/index/skills.yaml` + a row to its `README.md`, then PR
+5. Symlink into `~/.claude/skills/lovstudio-wcx` for local use
+
+## Architecture
+
+The lovstudio skill ecosystem (2026-04-16 refactor):
+
+| Layer | Location | Purpose |
+|-------|----------|---------|
+| Central index | `lovstudio/skills` repo & `~/lovstudio/coding/skills/index/` | `skills.yaml` + human README; consumed by agentskills.io & lovstudio.ai/agent |
+| Per-skill repo | `lovstudio/{name}-skill` & `~/lovstudio/coding/skills/{name}-skill/` | All skill code + SKILL.md + README.md + CHANGELOG.md |
+| Local Claude Code | `~/.claude/skills/lovstudio-{name}/` | Symlink chain into the per-skill repo |
+
+`paid: true/false` lives **only** in `index/skills.yaml` — never in SKILL.md.
 
 ## Differences from Official skill-creator
 
 | | Official | Lovstudio |
 |--|----------|-----------|
-| **README.md** | Explicitly forbidden | **Required** — repo is on GitHub |
-| **Frontmatter** | `name` + `description` only | + `license`, `compatibility`, `metadata` |
-| **Naming** | Any | `lovstudio:<name>` / `lovstudio-<name>/` |
-| **Directory** | Anywhere | `skills/lovstudio-<name>/` |
+| **README.md** | Explicitly forbidden | **Required** — repos are on GitHub |
+| **Frontmatter** | `name` + `description` | + `license`, `compatibility`, `metadata.version`, `tags` |
+| **Naming** | Any | `lovstudio:{name}` (frontmatter) / `{name}-skill/` (directory & repo) |
 | **Scripts** | Any format | Standalone Python CLI with `argparse` |
-| **Distribution** | `.skill` package | `npx skills add lovstudio/skills` |
-| **Interactive** | Optional | `AskUserQuestion` mandatory for conversion skills |
+| **Distribution** | `.skill` package | `git clone` each skill repo into `~/.claude/skills/lovstudio-{name}` |
+| **Interactive** | Optional | `AskUserQuestion` mandatory for generation/conversion skills |
+| **Central catalog** | — | `skills.yaml` + `README.md` in `lovstudio/skills` |
 
 ## License
 

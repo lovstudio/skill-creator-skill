@@ -15,7 +15,7 @@ compatibility: >
   Cross-platform: macOS, Windows, Linux.
 metadata:
   author: lovstudio
-  version: "1.0.0"
+  version: "0.1.0"
   tags: <space-separated tags>
 ---
 
@@ -33,7 +33,7 @@ metadata:
 ### Step 1: <First action>
 
 ```bash
-python lovstudio-<name>/scripts/<script>.py --flag value
+python3 ~/.claude/skills/lovstudio-<name>/scripts/<script>.py --flag value
 ```
 
 ### Step 2: Ask the user
@@ -43,7 +43,7 @@ python lovstudio-<name>/scripts/<script>.py --flag value
 ### Step 3: Execute
 
 ```bash
-python lovstudio-<name>/scripts/<script>.py --input <path> --output <path>
+python3 ~/.claude/skills/lovstudio-<name>/scripts/<script>.py --input <path> --output <path>
 ```
 
 ## CLI Reference
@@ -65,14 +65,16 @@ pip install <library> --break-system-packages
 ```markdown
 # lovstudio:<name>
 
+![Version](https://img.shields.io/badge/version-0.1.0-CC785C)
+
 <One-line description.>
 
-Part of [lovstudio/skills](https://github.com/lovstudio/skills) — by [lovstudio.ai](https://lovstudio.ai)
+Part of [lovstudio skills](https://github.com/lovstudio/skills) — by [lovstudio.ai](https://lovstudio.ai)
 
 ## Install
 
 ```bash
-npx skills add lovstudio/skills --skill lovstudio:<name>
+git clone https://github.com/lovstudio/<name>-skill ~/.claude/skills/lovstudio-<name>
 ```
 
 Requires: Python 3.8+ and `pip install <library>`
@@ -80,7 +82,7 @@ Requires: Python 3.8+ and `pip install <library>`
 ## Usage
 
 ```bash
-python <script>.py --input file.ext --output result.ext
+python3 ~/.claude/skills/lovstudio-<name>/scripts/<script>.py --input file.ext --output result.ext
 ```
 
 ## Options
@@ -94,3 +96,12 @@ python <script>.py --input file.ext --output result.ext
 
 MIT
 ```
+
+## Notes
+
+- Version source of truth: `README.md` badge. `SKILL.md` frontmatter
+  `metadata.version` is kept in sync by `skill-optimizer`.
+- Start at `0.1.0`, not `1.0.0` — per repo release conventions (stay in 0.x
+  unless explicitly promoted).
+- `paid` is **not** in SKILL.md frontmatter. It lives only in
+  `~/lovstudio/coding/skills/index/skills.yaml`.
