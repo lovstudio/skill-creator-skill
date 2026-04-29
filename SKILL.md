@@ -1,5 +1,5 @@
 ---
-name: lovstudio:skill-creator
+name: lovstudio-skill-creator
 category: Meta Skills
 tagline: "Scaffold new lovstudio skills as independent repos under lovstudio/{name}-skill."
 description: >
@@ -60,15 +60,107 @@ Key facts:
 
 ### Step 1: Understand the Skill
 
-Ask the user what the skill should do. Start with the most important question
-via `AskUserQuestion` — don't dump everything at once.
+Ask the user what the skill should do. Use `AskUserQuestion` — one question at
+a time, in the order below. **Do not skip or reorder.** The distribution model
+decides the architecture, so it has to come before any implementation question.
 
-Key questions:
-- What problem does it solve? What's the input → output?
-- 2-3 concrete usage examples?
-- What user phrases should trigger this skill (中文 + English)?
-- Pure-instruction skill, or does it need a Python script?
-- Free (public repo) or paid (private repo)?
+**Required question order:**
+
+#### Q1. Distribution model — ALWAYS ask first
+
+Even for "obvious" simple skills, ask. Users may have future monetization plans
+you can't infer from the initial request.
+
+> 这个 skill 的分发定位?
+>
+> 1. **Free (public)** — 任何人 git clone 就能用。适合引流、通用工具、开源贡献。
+> 2. **Paid, 普通 IP** — 核心逻辑是流程/模板/prompt 编排,用户 grep 出来不心疼。用加密分发 + license 鉴权。
+> 3. **Paid, 敏感 IP** — 含算法参数/业务规则/调好的 prompt/API 密钥,用户反编译会心疼。用 cloud-split:核心逻辑放云端,本地只有瘦客户端。
+>
+> 提示:不确定 → 选 2。未来升级到 3 比降级容易。
+
+这个答案决定后续流程分支:
+- 选 1 → 走标准公开 repo 流程
+- 选 2 → 走 encrypted skill 流程(README 里坦诚说明 "加密 = 鉴权闸门,不保证反提取")
+- 选 3 → **停下来读 `references/cloud-split.md`**,然后走 cloud-split 流程
+
+#### Q2. Problem & shape
+- 解决什么问题?输入 → 输出是什么?
+- 2-3 个具体使用示例
+- 触发短语(中文 + English)
+
+#### Q2.5. Decompose into protected vs public layers  ⟵ MANDATORY, do not skip
+
+Before any file is created, **decompose the skill** into two layers and **show
+the user the decomposition** for confirmation. This step catches two common
+failures: (a) cloud-split chosen with empty protected layer (over-engineering),
+(b) encrypted chosen but real secrets exist (under-protection).
+
+Present like this:
+
+> 我先拆解一下这个 skill 的结构:
+>
+> **公开层(瘦客户端 SKILL.md 会暴露这些)**:
+> - [具体列出:对话流、输入解析、输出渲染、错误处理]
+>
+> **保护层(需要藏起来的)**:
+> - [具体列出:算法/阈值/规则/prompt 工程/密钥/数据]
+> - 或明确写 "**无** — 这个 skill 没有需要保护的核心逻辑"
+>
+> 按这个拆解,你选的 [Q1 答案] [合理 / 不合理,建议改成 X]。确认继续?
+
+**Consistency check** — if decomposition contradicts Q1, challenge it:
+
+| Q1 选择 | 保护层内容 | 判断 |
+|---|---|---|
+| Free | 任何 | ✓ 无需保护问题 |
+| Encrypted | 非空 | ⚠️ 警告:encrypted 不防 L2 grep,真敏感的请升级 cloud-split |
+| Encrypted | 空 | ✓ 合理(典型场景:付费模板/工作流) |
+| Cloud-split | 非空且有实质 | ✓ 合理 |
+| **Cloud-split** | **空或琐碎** | ✗ **停下,反问用户是否过度设计,建议降级到 encrypted 或 free** |
+
+对琐碎 demo(如"两数之和")尤其要质询 —— cloud-split 的服务端成本 + 部署复杂度
+对"其实没东西可保护"的 skill 是净负收益。除非用户明确说"做模板/教学样本",
+否则建议降级。
+
+#### Q2.7. Naming — de-business the name  ⟵ MANDATORY for paid skills
+
+Bad naming leaks the logic through the API surface. Even with cloud-split, if
+the skill name + op name + input schema together describe the business logic,
+`grep` on jsonl reveals intent.
+
+**Rule**: name the **capability domain**, not the **specific logic**.
+
+| ✗ 逻辑自述(坏) | ✓ 能力域(好) |
+|---|---|
+| `sum-gt-ten` | `threshold-check` |
+| `extract-chinese-poem-style` | `text-style-analyzer` |
+| `detect-viral-headline` | `text-scorer` |
+| `calculate-compatibility` | `profile-matcher` |
+
+Propose 2-3 de-businessed names and let the user pick via AskUserQuestion.
+For the **op** names inside the handler, same rule — `op: "score"` beats
+`op: "check_if_sum_exceeds_10"`.
+
+Skip this step only if Q1 == Free and the user doesn't care about future
+paid upgrades.
+
+#### Q3. Implementation type
+- 纯指令 SKILL.md,还是需要 Python CLI 脚本?
+- (如果 Q1 选了 3:这一问跳过。cloud-split 的"实现"就是云端 handler,不是本地脚本。)
+
+### Protection model — what each tier actually buys you
+
+Be honest about what each tier protects against. Do not market encrypted skills
+as "IP protection" — it's a gate, not a vault.
+
+| Tier | Protects against | Does NOT protect against |
+|---|---|---|
+| Free | 无 | 无 |
+| Paid / encrypted | 路人 `git clone` 就能用(L1) | 技术用户 grep `~/.claude/projects/*.jsonl` 取回明文(L2) |
+| Paid / cloud-split | L1 + L2 + 反汇编客户端 | 反向推理 I/O 做劣质 clone |
+
+核心逻辑真正不下发到用户机器的 **只有 cloud-split**。其他 tier 都不要对用户承诺"加密保护"。
 
 ### Step 2: Plan Contents
 
@@ -101,6 +193,33 @@ This creates `~/lovstudio/coding/skills/{name}-skill/` with:
 ```
 
 Pass `--paid` if this is a paid skill (adjusts README + metadata hints).
+
+**If Q1 chose cloud-split (tier 3)**: after running init_skill.py, don't put
+your real logic in `scripts/`. Instead:
+1. Read `references/cloud-split.md` end-to-end before writing any code
+   **(this is not optional — the rules for non-leaky payloads are there, not here)**
+2. **Start from `threshold-check` as the reference pattern**, NOT `paid-add`.
+   `paid-add` is an architecture demo with an intentionally leaky payload
+   (for teaching). Copying its return shape into a real skill defeats the
+   whole point of cloud-split.
+3. Write the handler at `~/lovstudio/coding/web/supabase/functions/skill_call/handlers/<name>.ts`
+   — return a minimal symbolic payload (`{verdict: "A" | "B"}` style), not
+   descriptive strings or narrative `display` fields
+4. Write the thin SKILL.md per the `threshold-check` template — rendering
+   via a **symbol → text table**, never via a computed algorithm
+5. **MANDATORY pre-flight audit** — before registering the handler in the
+   dispatcher, before deploying, before telling the user "done":
+   run the checklist in `references/cloud-split.md` → "MANDATORY pre-flight
+   audit" section. Report each item's result to the user. If any item
+   fails, rewrite before moving on.
+6. Skip the normal Step 4 "write scripts" — there usually aren't any for
+   cloud-split skills (unless you need client-side rendering of server output)
+
+**Why the audit is mandatory**: a real incident during skill-creator
+development produced a cloud-split skill whose handler returned
+`{score, verdict: "below", display: "2+6=8 (below 10)"}`. Architecture was
+correct; protection was zero. The audit catches this class of bug before
+it ships.
 
 ### Step 4: Implement
 
