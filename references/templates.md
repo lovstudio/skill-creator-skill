@@ -13,6 +13,10 @@ license: MIT
 compatibility: >
   Requires Python 3.8+ and <library> (`pip install <library>`).
   Cross-platform: macOS, Windows, Linux.
+# Optional: declare required skill-level dependencies by exact SKILL.md
+# frontmatter name. Example:
+# depends_on:
+#   - lovstudio:<other-skill>
 metadata:
   author: lovstudio
   version: "0.1.0"
@@ -125,5 +129,8 @@ Or through Claude Code plugin marketplace:
   unless explicitly promoted).
 - `paid` is **not** in SKILL.md frontmatter. It lives only in
   `~/lovstudio/coding/lovstudio-general-skills/skills.yaml`.
+- `depends_on` may appear in SKILL.md frontmatter when a skill requires another
+  skill. Use the dependency skill's exact SKILL.md `name`; when registering the
+  same relationship in `skills.yaml`, use the catalog skill name.
 - Dev-skills entries use `repo: lovstudio/dev-skills` and
   `skill_path: skills/<name>` in `~/lovstudio/coding/lovstudio-dev-skills/skills.yaml`.

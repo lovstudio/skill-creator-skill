@@ -1,6 +1,6 @@
 # lovstudio:skill-creator
 
-![Version](https://img.shields.io/badge/version-2.1.0-CC785C)
+![Version](https://img.shields.io/badge/version-2.2.0-CC785C)
 
 Scaffold new skills for the lovstudio ecosystem. Skills can be created as
 **independent GitHub repos** at `lovstudio/{name}-skill` or as bundled entries
@@ -102,7 +102,7 @@ The lovstudio skill ecosystem:
 | | Official | Lovstudio |
 |--|----------|-----------|
 | **README.md** | Explicitly forbidden | **Required** — repos are on GitHub |
-| **Frontmatter** | `name` + `description` | + `license`, `compatibility`, `metadata.version`, `tags` |
+| **Frontmatter** | `name` + `description` | + `license`, `compatibility`, optional `depends_on`, `metadata.version`, `tags` |
 | **Naming** | Any | `lovstudio:{name}` (frontmatter) / `{name}-skill/` (directory & repo) |
 | **Scripts** | Any format | Standalone Python CLI with `argparse` |
 | **Distribution** | `.skill` package | Independent repo or `lovstudio/dev-skills` bundle |

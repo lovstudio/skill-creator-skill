@@ -33,6 +33,10 @@ license: MIT
 compatibility: >
   TODO: Requires Python 3.8+ and <library> (`pip install <library>`).
   Cross-platform: macOS, Windows, Linux.
+# Optional: declare required skill-level dependencies by exact SKILL.md
+# frontmatter name. Example:
+# depends_on:
+#   - lovstudio:<other-skill>
 metadata:
   author: lovstudio
   version: "0.1.0"
