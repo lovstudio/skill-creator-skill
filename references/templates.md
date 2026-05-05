@@ -97,6 +97,26 @@ python3 ~/.claude/skills/lovstudio-<name>/scripts/<script>.py --input file.ext -
 MIT
 ```
 
+## Dev-Skills README Install Block
+
+Use this block instead of the independent `git clone` install when the skill
+lives directly in `lovstudio/dev-skills`:
+
+~~~markdown
+## Install
+
+```bash
+npx skills add lovstudio/dev-skills
+```
+
+Or through Claude Code plugin marketplace:
+
+```text
+/plugin marketplace add lovstudio/dev-skills
+/plugin install dev-tools@lovstudio-dev
+```
+~~~
+
 ## Notes
 
 - Version source of truth: `README.md` badge. `SKILL.md` frontmatter
@@ -104,4 +124,6 @@ MIT
 - Start at `0.1.0`, not `1.0.0` — per repo release conventions (stay in 0.x
   unless explicitly promoted).
 - `paid` is **not** in SKILL.md frontmatter. It lives only in
-  `~/lovstudio/coding/skills/index/skills.yaml`.
+  `~/lovstudio/coding/lovstudio-business-skills/skills.yaml`.
+- Dev-skills entries use `repo: lovstudio/dev-skills` and
+  `skill_path: skills/<name>` in `~/lovstudio/coding/lovstudio-dev-skills/skills.yaml`.

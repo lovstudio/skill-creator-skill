@@ -3,6 +3,14 @@
 All notable changes to this skill are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: [SemVer](https://semver.org/)
 
+## [2.1.0] - 2026-05-06
+
+### Added
+
+- Add `dev-skills` as a first-class repository target for free Meta / Dev Tools skills.
+- `init_skill.py` now supports `--target dev-skills` and `--dev-skills`.
+- Document `repo: lovstudio/dev-skills` + `skill_path: skills/<name>` registration and marketplace plugin updates.
+
 ## [2.0.0] - 2026-04-18
 
 ### Changed
@@ -20,7 +28,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ### Removed
 
-- Step 0 (repo choice): `lovstudio/pro-skills` was archived 2026-04-16. `paid` now lives only in `index/skills.yaml` as a business classification, not as a skill property.
+- Step 0 (repo choice): `lovstudio/pro-skills` was archived 2026-04-16. `paid` now lives only in `lovstudio-business-skills/skills.yaml` as catalog metadata, not as a skill property.
 
 ## [1.2.0] - 2026-04-15
 
@@ -42,4 +50,3 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - Fix init_skill.py repo detection — prefer lovstudio-skills over cwd
 - README template now includes version badge
 - Remove CHANGELOG from 'What NOT to Include' (managed by skill-optimizer)
-

@@ -1,13 +1,13 @@
 ---
 name: lovstudio-skill-creator
 category: Meta Skills
-tagline: "Scaffold new lovstudio skills as independent repos under lovstudio/{name}-skill."
+tagline: "Scaffold lovstudio skills as independent repos or dev-skills entries."
 description: >
-  Create new skills for the lovstudio ecosystem. Each skill is its own
-  independent GitHub repo at lovstudio/{name}-skill, scaffolded locally at
-  ~/lovstudio/coding/skills/{name}-skill/, symlinked to ~/.claude/skills/
-  for immediate use, and registered in the central index at
-  ~/lovstudio/coding/skills/index/ (skills.yaml + README.md).
+  Create new skills for the lovstudio ecosystem. Skills can be scaffolded as
+  independent GitHub repos at lovstudio/{name}-skill or as bundled entries in
+  the lovstudio/dev-skills aggregate repo under skills/{name}/. The workflow
+  also sets up local symlinks for immediate use and registers the skill in the
+  appropriate index (skills.yaml + README.md).
   Lovstudio conventions: `lovstudio:{name}` frontmatter, mandatory README.md
   per skill, AskUserQuestion interactive flow, standalone Python CLI scripts
   with argparse, CJK text handling.
@@ -19,30 +19,40 @@ compatibility: >
   Scaffolds into ~/lovstudio/coding/skills/. Requires Python 3.8+, git, and gh CLI.
 metadata:
   author: lovstudio
-  version: "2.0.0"
+  version: "2.1.0"
   tags: skill-creator scaffold generator lovstudio
 ---
 
 # lovstudio:skill-creator
 
-Scaffold a new lovstudio skill as an **independent GitHub repo** under
-`lovstudio/{name}-skill`. The lovstudio ecosystem is no longer a monorepo —
-each skill is its own repo, and a central index at
-`~/lovstudio/coding/skills/index/` tracks them.
+Scaffold a new lovstudio skill either as an **independent GitHub repo** under
+`lovstudio/{name}-skill` or as a bundled entry inside
+`lovstudio/dev-skills`. The default is still the independent repo model; use
+`dev-skills` for Lovstudio meta/dev tooling that should ship as part of the
+developer skill bundle.
 
 ## Architecture
 
 ```
-~/lovstudio/coding/skills/
-├── index/                     ← central catalog (lovstudio/skills repo)
-│   ├── skills.yaml            ← machine-readable manifest (paid flag lives here)
-│   └── README.md              ← human-readable catalog
-├── {name}-skill/              ← each skill is an independent repo
-│   ├── SKILL.md
-│   ├── README.md
-│   ├── CHANGELOG.md           ← managed by skill-optimizer
-│   ├── scripts/               ← standalone Python CLI scripts
-│   └── references/            ← optional progressive-disclosure docs
+~/lovstudio/coding/
+├── lovstudio-business-skills/     ← main skills index (lovstudio/skills repo)
+│   ├── skills.yaml                ← machine-readable manifest (paid flag lives here)
+│   └── README.md                  ← human-readable catalog
+├── lovstudio-dev-skills/          ← aggregate repo for meta/dev skills
+│   ├── skills.yaml
+│   ├── .claude-plugin/marketplace.json
+│   └── skills/{name}/
+│       ├── SKILL.md
+│       ├── README.md
+│       ├── scripts/
+│       └── references/
+├── skills/                        ← independent per-skill source repos
+│   └── {name}-skill/
+│       ├── SKILL.md
+│       ├── README.md
+│       ├── CHANGELOG.md           ← managed by skill-optimizer
+│       ├── scripts/               ← standalone Python CLI scripts
+│       └── references/            ← optional progressive-disclosure docs
 └── ...
 
 ~/.claude/skills/lovstudio-{name}  ← symlink → ~/.agents/skills/lovstudio-{name}
@@ -50,11 +60,14 @@ each skill is its own repo, and a central index at
 ```
 
 Key facts:
-- GitHub repo name: `lovstudio/{name}-skill` (with `-skill` suffix)
-- Local source path: `~/lovstudio/coding/skills/{name}-skill/` (no `lovstudio-` prefix)
+- Default GitHub repo name: `lovstudio/{name}-skill` (with `-skill` suffix)
+- Default local source path: `~/lovstudio/coding/skills/{name}-skill/` (no `lovstudio-` prefix)
+- Main index checkout path: `~/lovstudio/coding/lovstudio-business-skills/`
+- Dev-skills source path: `~/lovstudio/coding/lovstudio-dev-skills/skills/{name}/`
+- Dev-skills catalog entry uses `repo: lovstudio/dev-skills` and `skill_path: skills/{name}`
 - Claude Code reads: `~/.claude/skills/lovstudio-{name}/` (with `lovstudio-` prefix, via symlink)
 - Frontmatter `name`: `lovstudio:{name}` (with `:` separator)
-- `paid: true/false` lives **only** in `index/skills.yaml`, never in SKILL.md
+- `paid: true/false` lives **only** in `lovstudio-business-skills/skills.yaml`, never in SKILL.md
 
 ## Skill Creation Process
 
@@ -66,7 +79,7 @@ decides the architecture, so it has to come before any implementation question.
 
 **Required question order:**
 
-#### Q1. Distribution model — ALWAYS ask first
+#### Q1. Commercial / protection model — ALWAYS ask first
 
 Even for "obvious" simple skills, ask. Users may have future monetization plans
 you can't infer from the initial request.
@@ -83,6 +96,29 @@ you can't infer from the initial request.
 - 选 1 → 走标准公开 repo 流程
 - 选 2 → 走 encrypted skill 流程(README 里坦诚说明 "加密 = 鉴权闸门,不保证反提取")
 - 选 3 → **停下来读 `references/cloud-split.md`**,然后走 cloud-split 流程
+
+#### Q1.5. Repository target — ask after Q1
+
+This is separate from the commercial/protection model. It answers "where does
+the source live and how is it distributed?"
+
+> 这个 skill 放在哪里分发?
+>
+> 1. **Independent repo (default)** — `~/lovstudio/coding/skills/{name}-skill/`
+>    → `lovstudio/{name}-skill` → central `lovstudio/skills` index.
+> 2. **dev-skills bundle** — `~/lovstudio/coding/lovstudio-dev-skills/skills/{name}/`
+>    → `lovstudio/dev-skills` → bundled install via `npx skills add lovstudio/dev-skills`
+>    or Claude Code plugin marketplace.
+>
+> 判断:面向技能作者/开发流程/内部工程规范的免费工具 → 选 2。通用用户工具、
+> 付费 skill、cloud-split thin client → 选 1。
+
+Consistency rules:
+- If Q1 is **Paid** or **Cloud-split**, do **not** use dev-skills. Use an
+  independent repo so licensing, encryption, and cloud-split thin-client
+  packaging stay isolated.
+- Use dev-skills for free Meta / Dev Tools skills such as `skill-creator`,
+  `skill-optimizer`, `project-port`, or project refactor/init helpers.
 
 #### Q2. Problem & shape
 - 解决什么问题?输入 → 输出是什么?
@@ -177,13 +213,19 @@ Rules:
 
 ### Step 3: Initialize
 
-Run the init script (it auto-detects the target directory):
+Run the init script. Independent repo is the default:
 
 ```bash
 python3 ~/.claude/skills/lovstudio-skill-creator/scripts/init_skill.py <name>
 ```
 
-This creates `~/lovstudio/coding/skills/{name}-skill/` with:
+For a dev-skills bundled skill:
+
+```bash
+python3 ~/.claude/skills/lovstudio-skill-creator/scripts/init_skill.py <name> --target dev-skills
+```
+
+Independent repo creates `~/lovstudio/coding/skills/{name}-skill/` with:
 
 ```
 {name}-skill/
@@ -192,7 +234,12 @@ This creates `~/lovstudio/coding/skills/{name}-skill/` with:
 └── scripts/          ← empty, ready for implementation
 ```
 
+Dev-skills creates `~/lovstudio/coding/lovstudio-dev-skills/skills/{name}/` with
+the same skill-internal structure.
+
 Pass `--paid` if this is a paid skill (adjusts README + metadata hints).
+Do not combine `--paid` with `--target dev-skills`; use an independent repo for
+paid distribution.
 
 **If Q1 chose cloud-split (tier 3)**: after running init_skill.py, don't put
 your real logic in `scripts/`. Instead:
@@ -241,6 +288,10 @@ See `references/templates.md` for SKILL.md / README.md templates.
 
 ### Step 5: Publish
 
+Follow the branch matching Q1.5.
+
+### Independent Repo Target
+
 #### 5a. Initialize & push the skill's own repo
 
 ```bash
@@ -258,7 +309,7 @@ gh repo create lovstudio/<name>-skill --private --source=. --push
 
 #### 5b. Register in the central index
 
-Edit `~/lovstudio/coding/skills/index/skills.yaml` — append under the right
+Edit `~/lovstudio/coding/lovstudio-business-skills/skills.yaml` — append under the right
 category (category order in the yaml determines display order on the website):
 
 ```yaml
@@ -270,11 +321,11 @@ category (category order in the yaml determines display order on the website):
     description: "<One-line description matching SKILL.md tagline>"
 ```
 
-Also add a row to `~/lovstudio/coding/skills/index/README.md` under the matching
+Also add a row to `~/lovstudio/coding/lovstudio-business-skills/README.md` under the matching
 category section. Then PR against `lovstudio/skills`:
 
 ```bash
-cd ~/lovstudio/coding/skills/index
+cd ~/lovstudio/coding/lovstudio-business-skills
 git checkout -b add/<name>
 git add skills.yaml README.md
 git commit -m "add: <name> skill"
@@ -320,11 +371,74 @@ Known tags (see `lovstudio/web:src/data/skills.ts`):
 - `skill:<id>` — detail for a single skill
 - `skill-cases:<id>` — cases.json for a skill
 
+### Dev-Skills Target
+
+Use this for free Meta / Dev Tools skills that belong in the
+`lovstudio/dev-skills` bundle.
+
+#### 5a. Commit inside dev-skills
+
+```bash
+cd ~/lovstudio/coding/lovstudio-dev-skills
+git checkout -b add/<name>
+git add skills/<name>
+```
+
+#### 5b. Register in dev-skills metadata
+
+Edit `~/lovstudio/coding/lovstudio-dev-skills/skills.yaml`:
+
+```yaml
+- name: <name>
+  repo: lovstudio/dev-skills
+  skill_path: skills/<name>
+  name_zh: <中文名>
+  paid: false
+  category: "Dev Tools"                 # or "Meta"
+  version: "0.1.0"
+  description: "<Agent-facing trigger description>"
+  tagline_en: "<Human-facing English tagline>"
+  tagline_zh: "<Human-facing Chinese tagline>"
+```
+
+Also update `.claude-plugin/marketplace.json` so the correct plugin includes
+`"./skills/<name>"`:
+- Meta skills → `plugins[].name == "meta"`
+- Dev tooling → `plugins[].name == "dev-tools"`
+
+Then render the READMEs:
+
+```bash
+python3 scripts/render-readme.py
+```
+
+#### 5c. Symlink for local availability
+
+```bash
+ln -s ~/lovstudio/coding/lovstudio-dev-skills/skills/<name> \
+      ~/.agents/skills/lovstudio-<name>
+ln -s ../../.agents/skills/lovstudio-<name> \
+      ~/.claude/skills/lovstudio-<name>
+```
+
+#### 5d. Commit and push
+
+```bash
+git add skills.yaml README.md README.en.md .claude-plugin/marketplace.json
+git commit -m "add: <name> skill"
+git push -u origin HEAD
+gh pr create --fill
+```
+
+Do not register dev-skills-only skills in the central `~/lovstudio/coding/lovstudio-business-skills/`
+unless the user explicitly asks for the main Lovstudio skills index to list the
+bundle entry.
+
 ### Step 6: Test & Iterate
 
 1. In a new conversation, invoke `/lovstudio:<name>` — confirm it triggers
 2. Notice struggles → edit SKILL.md / scripts in the source repo
-3. Commit & push (the symlink chain means no local copy to sync)
+3. Commit & push in the chosen target repo (independent repo or dev-skills)
 
 ## Design Patterns
 
@@ -361,9 +475,23 @@ For skills that fill or generate content:
 - `INSTALLATION_GUIDE.md` — clutter; install instructions go in README.md
 - Test files — scripts are tested by running, not with test frameworks
 - `__pycache__/`, `*.pyc`, `.DS_Store` — add to `.gitignore`
-- `paid` field in frontmatter — it lives only in `index/skills.yaml`
+- `paid` field in frontmatter — it lives only in `lovstudio-business-skills/skills.yaml`
 
-## Migration Note (2026-04)
+## Migration Notes
+
+### 2026-05: dev-skills aggregate target
+
+Some free developer/meta skills should live directly in `lovstudio/dev-skills`
+instead of requiring a dedicated repo. Use `--target dev-skills` for those:
+
+```bash
+python3 ~/.claude/skills/lovstudio-skill-creator/scripts/init_skill.py tanstack-query --target dev-skills
+```
+
+The skill directory is `~/lovstudio/coding/lovstudio-dev-skills/skills/tanstack-query/`, and `skills.yaml`
+must include `repo: lovstudio/dev-skills` plus `skill_path: skills/tanstack-query`.
+
+### 2026-04: independent per-skill repos
 
 The ecosystem was refactored from a monorepo (`lovstudio/skills` containing
 `skills/lovstudio-<name>/`) + mirror (`lovstudio/pro-skills`) into independent
