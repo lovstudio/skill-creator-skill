@@ -1,17 +1,23 @@
 #!/usr/bin/env python3
 """
-Initialize a new lovstudio skill as an independent repo scaffold.
+Initialize a new lovstudio skill scaffold.
 
 Usage:
     python3 init_skill.py <name>
     python3 init_skill.py <name> --paid
+    python3 init_skill.py <name> --target dev-skills
+    python3 init_skill.py <name> --dev-skills
     python3 init_skill.py <name> --path /custom/path
 
 Creates ~/lovstudio/coding/skills/<name>-skill/ by default.
+With --target dev-skills, creates
+~/lovstudio/coding/lovstudio-dev-skills/skills/<name>/.
 
 Examples:
     python3 init_skill.py fill-form   → ~/lovstudio/coding/skills/fill-form-skill/
     python3 init_skill.py any2pptx    → ~/lovstudio/coding/skills/any2pptx-skill/
+    python3 init_skill.py tanstack-query --target dev-skills
+        → ~/lovstudio/coding/lovstudio-dev-skills/skills/tanstack-query/
 """
 
 import sys, argparse
@@ -110,6 +116,47 @@ python3 ~/.claude/skills/lovstudio-{name}/scripts/TODO.py --input file.ext --out
 MIT
 '''
 
+DEV_SKILLS_README_MD = '''# lovstudio:{name}
+
+![Version](https://img.shields.io/badge/version-0.1.0-CC785C)
+
+TODO: One-line description.
+
+Part of [lovstudio dev-skills](https://github.com/lovstudio/dev-skills) — by [lovstudio.ai](https://lovstudio.ai)
+
+## Install
+
+```bash
+npx skills add lovstudio/dev-skills
+```
+
+Or through Claude Code plugin marketplace:
+
+```text
+/plugin marketplace add lovstudio/dev-skills
+/plugin install dev-tools@lovstudio-dev
+```
+
+Requires: Python 3.8+ and `pip install TODO`
+
+## Usage
+
+```bash
+python3 ~/.claude/skills/lovstudio-{name}/scripts/TODO.py --input file.ext --output result.ext
+```
+
+## Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--input` | (required) | TODO |
+| `--output` | `output.ext` | TODO |
+
+## License
+
+MIT
+'''
+
 GITIGNORE = '''__pycache__/
 *.pyc
 *.pyo
@@ -125,8 +172,26 @@ node_modules/
 def main():
     ap = argparse.ArgumentParser(description="Initialize a new lovstudio skill")
     ap.add_argument("name", help="Skill short name (no prefix / no -skill suffix)")
-    ap.add_argument("--path", default="", help="Custom base directory (default: ~/lovstudio/coding/skills/)")
-    ap.add_argument("--paid", action="store_true", help="Mark as paid in hints (actual paid flag lives in index/skills.yaml)")
+    ap.add_argument(
+        "--target",
+        choices=("repo", "dev-skills"),
+        default="repo",
+        help="Scaffold target: independent per-skill repo (default) or lovstudio/dev-skills bundle",
+    )
+    ap.add_argument(
+        "--dev-skills",
+        action="store_true",
+        help="Shortcut for --target dev-skills",
+    )
+    ap.add_argument(
+        "--path",
+        default="",
+        help=(
+            "Custom base directory. For --target repo, defaults to ~/lovstudio/coding/skills/. "
+            "For --target dev-skills, defaults to ~/lovstudio/coding/lovstudio-dev-skills/skills/."
+        ),
+    )
+    ap.add_argument("--paid", action="store_true", help="Mark as paid in hints (actual paid flag lives in lovstudio-business-skills/skills.yaml)")
     args = ap.parse_args()
 
     # Normalize: strip common prefixes / suffix users might paste
@@ -137,9 +202,19 @@ def main():
     if name.endswith("-skill"):
         name = name[: -len("-skill")]
 
-    base = Path(args.path) if args.path else (Path.home() / "lovstudio" / "coding" / "skills")
+    target = "dev-skills" if args.dev_skills else args.target
+    if target == "dev-skills" and args.paid:
+        print("ERROR: --target dev-skills is only for free Meta / Dev Tools skills. Use the default independent repo target for paid skills.", file=sys.stderr)
+        sys.exit(1)
+
+    if args.path:
+        base = Path(args.path)
+    elif target == "dev-skills":
+        base = Path.home() / "lovstudio" / "coding" / "lovstudio-dev-skills" / "skills"
+    else:
+        base = Path.home() / "lovstudio" / "coding" / "skills"
     base.mkdir(parents=True, exist_ok=True)
-    skill_dir = base / f"{name}-skill"
+    skill_dir = base / name if target == "dev-skills" else base / f"{name}-skill"
 
     if skill_dir.exists():
         print(f"ERROR: {skill_dir} already exists", file=sys.stderr)
@@ -149,7 +224,8 @@ def main():
     (skill_dir / "scripts").mkdir()
 
     (skill_dir / "SKILL.md").write_text(SKILL_MD.format(name=name))
-    (skill_dir / "README.md").write_text(README_MD.format(name=name))
+    readme = DEV_SKILLS_README_MD if target == "dev-skills" else README_MD
+    (skill_dir / "README.md").write_text(readme.format(name=name))
     (skill_dir / ".gitignore").write_text(GITIGNORE)
 
     print(f"✓ Created {skill_dir}/")
@@ -159,16 +235,35 @@ def main():
     print(f"  .gitignore")
     print()
     print("Next steps:")
-    print(f"  1. cd {skill_dir}")
-    print(f"  2. Implement scripts/ and fill TODO placeholders in SKILL.md / README.md")
-    print(f"  3. git init && git add -A && git commit -m 'feat: initial release of {name} skill'")
-    visibility = "--private" if args.paid else "--public"
-    print(f"  4. gh repo create lovstudio/{name}-skill {visibility} --source=. --push")
-    print(f"  5. Symlink:")
-    print(f"       ln -s {skill_dir} ~/.agents/skills/lovstudio-{name}")
-    print(f"       ln -s ../../.agents/skills/lovstudio-{name} ~/.claude/skills/lovstudio-{name}")
-    paid_flag = "true" if args.paid else "false"
-    print(f"  6. Register in ~/lovstudio/coding/skills/index/skills.yaml (paid: {paid_flag})")
+    if target == "dev-skills":
+        dev_root = skill_dir.parents[1]
+        print(f"  1. cd {dev_root}")
+        print(f"  2. Implement skills/{name}/ and fill TODO placeholders in SKILL.md / README.md")
+        print("  3. Add to skills.yaml:")
+        print(f"       - name: {name}")
+        print("         repo: lovstudio/dev-skills")
+        print(f"         skill_path: skills/{name}")
+        print("         paid: false")
+        print('         category: "Dev Tools"  # or "Meta"')
+        print("         version: \"0.1.0\"")
+        print(f"  4. Add ./skills/{name} to .claude-plugin/marketplace.json under meta or dev-tools")
+        print("  5. python3 scripts/render-readme.py")
+        print("  6. Symlink:")
+        print(f"       ln -s {skill_dir} ~/.agents/skills/lovstudio-{name}")
+        print(f"       ln -s ../../.agents/skills/lovstudio-{name} ~/.claude/skills/lovstudio-{name}")
+        print(f"  7. git add skills.yaml README.md README.en.md .claude-plugin/marketplace.json skills/{name}")
+        print(f"     git commit -m 'add: {name} skill'")
+    else:
+        print(f"  1. cd {skill_dir}")
+        print(f"  2. Implement scripts/ and fill TODO placeholders in SKILL.md / README.md")
+        print(f"  3. git init && git add -A && git commit -m 'feat: initial release of {name} skill'")
+        visibility = "--private" if args.paid else "--public"
+        print(f"  4. gh repo create lovstudio/{name}-skill {visibility} --source=. --push")
+        print(f"  5. Symlink:")
+        print(f"       ln -s {skill_dir} ~/.agents/skills/lovstudio-{name}")
+        print(f"       ln -s ../../.agents/skills/lovstudio-{name} ~/.claude/skills/lovstudio-{name}")
+        paid_flag = "true" if args.paid else "false"
+        print(f"  6. Register in ~/lovstudio/coding/lovstudio-business-skills/skills.yaml (paid: {paid_flag})")
 
 
 if __name__ == "__main__":
