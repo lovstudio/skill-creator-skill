@@ -124,6 +124,6 @@ Or through Claude Code plugin marketplace:
 - Start at `0.1.0`, not `1.0.0` — per repo release conventions (stay in 0.x
   unless explicitly promoted).
 - `paid` is **not** in SKILL.md frontmatter. It lives only in
-  `~/lovstudio/coding/lovstudio-business-skills/skills.yaml`.
+  `~/lovstudio/coding/lovstudio-skills/skills.yaml`.
 - Dev-skills entries use `repo: lovstudio/dev-skills` and
   `skill_path: skills/<name>` in `~/lovstudio/coding/lovstudio-dev-skills/skills.yaml`.

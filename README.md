@@ -35,7 +35,7 @@ git clone https://github.com/lovstudio/skill-creator-skill ~/.claude/skills/lovs
                              ▼
 ┌────────────────────────────────────────────────────────────┐
 │  Implement → gh repo create lovstudio/wcx-skill --push      │
-│           → PR into lovstudio-business-skills/skills.yaml + lovstudio-business-skills/README.md     │
+│           → PR into lovstudio-skills/skills.yaml + lovstudio-skills/README.md     │
 │           → symlink to ~/.claude/skills/lovstudio-wcx       │
 └────────────────────────────────────────────────────────────┘
 
@@ -90,12 +90,12 @@ The lovstudio skill ecosystem:
 
 | Layer | Location | Purpose |
 |-------|----------|---------|
-| Central index | `lovstudio/skills` repo & `~/lovstudio/coding/lovstudio-business-skills/` | `skills.yaml` + human README; consumed by agentskills.io & lovstudio.ai/agent |
+| Central index | `lovstudio/skills` repo & `~/lovstudio/coding/lovstudio-skills/` | `skills.yaml` + human README; consumed by agentskills.io & lovstudio.ai/agent |
 | Per-skill repo | `lovstudio/{name}-skill` & `~/lovstudio/coding/skills/{name}-skill/` | All skill code + SKILL.md + README.md + CHANGELOG.md |
 | Dev skills bundle | `lovstudio/dev-skills` & `~/lovstudio/coding/lovstudio-dev-skills/skills/{name}/` | Free Meta / Dev Tools skills installed together |
 | Local Claude Code | `~/.claude/skills/lovstudio-{name}/` | Symlink chain into the per-skill repo |
 
-`paid: true/false` lives **only** in `lovstudio-business-skills/skills.yaml` — never in SKILL.md.
+`paid: true/false` lives **only** in `lovstudio-skills/skills.yaml` — never in SKILL.md.
 
 ## Differences from Official skill-creator
 

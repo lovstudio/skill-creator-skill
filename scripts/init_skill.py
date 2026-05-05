@@ -191,7 +191,7 @@ def main():
             "For --target dev-skills, defaults to ~/lovstudio/coding/lovstudio-dev-skills/skills/."
         ),
     )
-    ap.add_argument("--paid", action="store_true", help="Mark as paid in hints (actual paid flag lives in lovstudio-business-skills/skills.yaml)")
+    ap.add_argument("--paid", action="store_true", help="Mark as paid in hints (actual paid flag lives in lovstudio-skills/skills.yaml)")
     args = ap.parse_args()
 
     # Normalize: strip common prefixes / suffix users might paste
@@ -263,7 +263,7 @@ def main():
         print(f"       ln -s {skill_dir} ~/.agents/skills/lovstudio-{name}")
         print(f"       ln -s ../../.agents/skills/lovstudio-{name} ~/.claude/skills/lovstudio-{name}")
         paid_flag = "true" if args.paid else "false"
-        print(f"  6. Register in ~/lovstudio/coding/lovstudio-business-skills/skills.yaml (paid: {paid_flag})")
+        print(f"  6. Register in ~/lovstudio/coding/lovstudio-skills/skills.yaml (paid: {paid_flag})")
 
 
 if __name__ == "__main__":
