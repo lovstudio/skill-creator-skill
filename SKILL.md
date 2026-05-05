@@ -35,7 +35,7 @@ developer skill bundle.
 
 ```
 ~/lovstudio/coding/
-├── lovstudio-skills/     ← main skills index (lovstudio/skills repo)
+├── lovstudio-general-skills/     ← general skills index (lovstudio/general-skills repo)
 │   ├── skills.yaml                ← machine-readable manifest (paid flag lives here)
 │   └── README.md                  ← human-readable catalog
 ├── lovstudio-dev-skills/          ← aggregate repo for meta/dev skills
@@ -62,12 +62,12 @@ developer skill bundle.
 Key facts:
 - Default GitHub repo name: `lovstudio/{name}-skill` (with `-skill` suffix)
 - Default local source path: `~/lovstudio/coding/skills/{name}-skill/` (no `lovstudio-` prefix)
-- Main index checkout path: `~/lovstudio/coding/lovstudio-skills/`
+- General skills checkout path: `~/lovstudio/coding/lovstudio-general-skills/`
 - Dev-skills source path: `~/lovstudio/coding/lovstudio-dev-skills/skills/{name}/`
 - Dev-skills catalog entry uses `repo: lovstudio/dev-skills` and `skill_path: skills/{name}`
 - Claude Code reads: `~/.claude/skills/lovstudio-{name}/` (with `lovstudio-` prefix, via symlink)
 - Frontmatter `name`: `lovstudio:{name}` (with `:` separator)
-- `paid: true/false` lives **only** in `lovstudio-skills/skills.yaml`, never in SKILL.md
+- `paid: true/false` lives **only** in `lovstudio-general-skills/skills.yaml`, never in SKILL.md
 
 ## Skill Creation Process
 
@@ -105,7 +105,7 @@ the source live and how is it distributed?"
 > 这个 skill 放在哪里分发?
 >
 > 1. **Independent repo (default)** — `~/lovstudio/coding/skills/{name}-skill/`
->    → `lovstudio/{name}-skill` → central `lovstudio/skills` index.
+>    → `lovstudio/{name}-skill` → general `lovstudio/general-skills` index.
 > 2. **dev-skills bundle** — `~/lovstudio/coding/lovstudio-dev-skills/skills/{name}/`
 >    → `lovstudio/dev-skills` → bundled install via `npx skills add lovstudio/dev-skills`
 >    or Claude Code plugin marketplace.
@@ -307,9 +307,9 @@ gh repo create lovstudio/<name>-skill --public --source=. --push
 gh repo create lovstudio/<name>-skill --private --source=. --push
 ```
 
-#### 5b. Register in the central index
+#### 5b. Register in the general-skills index
 
-Edit `~/lovstudio/coding/lovstudio-skills/skills.yaml` — append under the right
+Edit `~/lovstudio/coding/lovstudio-general-skills/skills.yaml` — append under the right
 category (category order in the yaml determines display order on the website):
 
 ```yaml
@@ -321,11 +321,11 @@ category (category order in the yaml determines display order on the website):
     description: "<One-line description matching SKILL.md tagline>"
 ```
 
-Also add a row to `~/lovstudio/coding/lovstudio-skills/README.md` under the matching
-category section. Then PR against `lovstudio/skills`:
+Also add a row to `~/lovstudio/coding/lovstudio-general-skills/README.md` under the matching
+category section. Then PR against `lovstudio/general-skills`:
 
 ```bash
-cd ~/lovstudio/coding/lovstudio-skills
+cd ~/lovstudio/coding/lovstudio-general-skills
 git checkout -b add/<name>
 git add skills.yaml README.md
 git commit -m "add: <name> skill"
@@ -430,7 +430,7 @@ git push -u origin HEAD
 gh pr create --fill
 ```
 
-Do not register dev-skills-only skills in the central `~/lovstudio/coding/lovstudio-skills/`
+Do not register dev-skills-only skills in the general-skills index `~/lovstudio/coding/lovstudio-general-skills/`
 unless the user explicitly asks for the main Lovstudio skills index to list the
 bundle entry.
 
@@ -475,7 +475,7 @@ For skills that fill or generate content:
 - `INSTALLATION_GUIDE.md` — clutter; install instructions go in README.md
 - Test files — scripts are tested by running, not with test frameworks
 - `__pycache__/`, `*.pyc`, `.DS_Store` — add to `.gitignore`
-- `paid` field in frontmatter — it lives only in `lovstudio-skills/skills.yaml`
+- `paid` field in frontmatter — it lives only in `lovstudio-general-skills/skills.yaml`
 
 ## Migration Notes
 

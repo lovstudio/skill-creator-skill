@@ -6,7 +6,7 @@ Scaffold new skills for the lovstudio ecosystem. Skills can be created as
 **independent GitHub repos** at `lovstudio/{name}-skill` or as bundled entries
 inside [`lovstudio/dev-skills`](https://github.com/lovstudio/dev-skills).
 
-Part of [lovstudio skills](https://github.com/lovstudio/skills) &mdash; by [lovstudio.ai](https://lovstudio.ai)
+Part of [lovstudio general skills](https://github.com/lovstudio/general-skills) &mdash; by [lovstudio.ai](https://lovstudio.ai)
 
 ## Install
 
@@ -35,7 +35,7 @@ git clone https://github.com/lovstudio/skill-creator-skill ~/.claude/skills/lovs
                              ▼
 ┌────────────────────────────────────────────────────────────┐
 │  Implement → gh repo create lovstudio/wcx-skill --push      │
-│           → PR into lovstudio-skills/skills.yaml + lovstudio-skills/README.md     │
+│           → PR into lovstudio-general-skills/skills.yaml + lovstudio-general-skills/README.md     │
 │           → symlink to ~/.claude/skills/lovstudio-wcx       │
 └────────────────────────────────────────────────────────────┘
 
@@ -90,12 +90,12 @@ The lovstudio skill ecosystem:
 
 | Layer | Location | Purpose |
 |-------|----------|---------|
-| Central index | `lovstudio/skills` repo & `~/lovstudio/coding/lovstudio-skills/` | `skills.yaml` + human README; consumed by agentskills.io & lovstudio.ai/agent |
+| General skills index | `lovstudio/general-skills` repo & `~/lovstudio/coding/lovstudio-general-skills/` | `skills.yaml` + human README; consumed by agentskills.io & lovstudio.ai/agent |
 | Per-skill repo | `lovstudio/{name}-skill` & `~/lovstudio/coding/skills/{name}-skill/` | All skill code + SKILL.md + README.md + CHANGELOG.md |
 | Dev skills bundle | `lovstudio/dev-skills` & `~/lovstudio/coding/lovstudio-dev-skills/skills/{name}/` | Free Meta / Dev Tools skills installed together |
 | Local Claude Code | `~/.claude/skills/lovstudio-{name}/` | Symlink chain into the per-skill repo |
 
-`paid: true/false` lives **only** in `lovstudio-skills/skills.yaml` — never in SKILL.md.
+`paid: true/false` lives **only** in `lovstudio-general-skills/skills.yaml` — never in SKILL.md.
 
 ## Differences from Official skill-creator
 
@@ -107,7 +107,7 @@ The lovstudio skill ecosystem:
 | **Scripts** | Any format | Standalone Python CLI with `argparse` |
 | **Distribution** | `.skill` package | Independent repo or `lovstudio/dev-skills` bundle |
 | **Interactive** | Optional | `AskUserQuestion` mandatory for generation/conversion skills |
-| **Central catalog** | — | `skills.yaml` + `README.md` in `lovstudio/skills` |
+| **General catalog** | — | `skills.yaml` + `README.md` in `lovstudio/general-skills` |
 
 ## License
 

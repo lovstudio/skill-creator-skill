@@ -28,7 +28,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ### Removed
 
-- Step 0 (repo choice): `lovstudio/pro-skills` was archived 2026-04-16. `paid` now lives only in `lovstudio-skills/skills.yaml` as catalog metadata, not as a skill property.
+- Step 0 (repo choice): `lovstudio/pro-skills` was archived 2026-04-16. `paid` now lives only in `lovstudio-general-skills/skills.yaml` as catalog metadata, not as a skill property.
 
 ## [1.2.0] - 2026-04-15
 

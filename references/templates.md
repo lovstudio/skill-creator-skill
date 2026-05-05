@@ -69,7 +69,7 @@ pip install <library> --break-system-packages
 
 <One-line description.>
 
-Part of [lovstudio skills](https://github.com/lovstudio/skills) — by [lovstudio.ai](https://lovstudio.ai)
+Part of [lovstudio general skills](https://github.com/lovstudio/general-skills) — by [lovstudio.ai](https://lovstudio.ai)
 
 ## Install
 
@@ -124,6 +124,6 @@ Or through Claude Code plugin marketplace:
 - Start at `0.1.0`, not `1.0.0` — per repo release conventions (stay in 0.x
   unless explicitly promoted).
 - `paid` is **not** in SKILL.md frontmatter. It lives only in
-  `~/lovstudio/coding/lovstudio-skills/skills.yaml`.
+  `~/lovstudio/coding/lovstudio-general-skills/skills.yaml`.
 - Dev-skills entries use `repo: lovstudio/dev-skills` and
   `skill_path: skills/<name>` in `~/lovstudio/coding/lovstudio-dev-skills/skills.yaml`.
