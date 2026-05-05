@@ -3,6 +3,13 @@
 All notable changes to this skill are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: [SemVer](https://semver.org/)
 
+## [2.2.0] - 2026-05-06
+
+### Added
+
+- Document optional SKILL.md frontmatter `depends_on` for required skill-level dependencies.
+- Scaffold templates now include commented `depends_on` guidance so new skills can declare reuse relationships explicitly.
+
 ## [2.1.0] - 2026-05-06
 
 ### Added

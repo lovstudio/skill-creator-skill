@@ -9,8 +9,9 @@ description: >
   also sets up local symlinks for immediate use and registers the skill in the
   appropriate index (skills.yaml + README.md).
   Lovstudio conventions: `lovstudio:{name}` frontmatter, mandatory README.md
-  per skill, AskUserQuestion interactive flow, standalone Python CLI scripts
-  with argparse, CJK text handling.
+  per skill, `depends_on` frontmatter for required skill-level dependencies,
+  AskUserQuestion interactive flow, standalone Python CLI scripts with
+  argparse, CJK text handling.
   Use when the user wants to create a new skill, add a skill to the lovstudio
   ecosystem, scaffold a skill, or mentions "新建skill", "创建skill", "封装成skill",
   "new skill", "add skill", "scaffold skill", "生成skill".
@@ -19,7 +20,7 @@ compatibility: >
   Scaffolds into ~/lovstudio/coding/skills/. Requires Python 3.8+, git, and gh CLI.
 metadata:
   author: lovstudio
-  version: "2.1.0"
+  version: "2.2.0"
   tags: skill-creator scaffold generator lovstudio
 ---
 
@@ -67,6 +68,10 @@ Key facts:
 - Dev-skills catalog entry uses `repo: lovstudio/dev-skills` and `skill_path: skills/{name}`
 - Claude Code reads: `~/.claude/skills/lovstudio-{name}/` (with `lovstudio-` prefix, via symlink)
 - Frontmatter `name`: `lovstudio:{name}` (with `:` separator)
+- Frontmatter `depends_on`: optional list of required skill names from those
+  skills' own `SKILL.md` frontmatter. Use it when one skill must reuse another
+  instead of duplicating implementation. In `skills.yaml`, use catalog names
+  such as `find-logo`.
 - `paid: true/false` lives **only** in `lovstudio-general-skills/skills.yaml`, never in SKILL.md
 
 ## Skill Creation Process
