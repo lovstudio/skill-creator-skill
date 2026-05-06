@@ -8,10 +8,11 @@ description: >
   the lovstudio/dev-skills aggregate repo under skills/{name}/. The workflow
   also sets up local symlinks for immediate use and registers the skill in the
   appropriate index (skills.yaml + README.md).
-  Lovstudio conventions: `lovstudio:{name}` frontmatter, mandatory README.md
-  per skill, `depends_on` frontmatter for required skill-level dependencies,
-  AskUserQuestion interactive flow, standalone Python CLI scripts with
-  argparse, CJK text handling.
+  Lovstudio conventions: Agent Skills-compatible `lovstudio-{name}`
+  frontmatter, mandatory README.md per skill, `depends_on` frontmatter for
+  required skill-level dependencies, AskUserQuestion interactive flow,
+  standalone Python CLI scripts with argparse, CJK text handling, and a
+  portable user configuration layer for local paths and brand settings.
   Use when the user wants to create a new skill, add a skill to the lovstudio
   ecosystem, scaffold a skill, or mentions "新建skill", "创建skill", "封装成skill",
   "new skill", "add skill", "scaffold skill", "生成skill".
@@ -20,11 +21,11 @@ compatibility: >
   Scaffolds into ~/lovstudio/coding/skills/. Requires Python 3.8+, git, and gh CLI.
 metadata:
   author: lovstudio
-  version: "2.2.0"
+  version: "2.3.0"
   tags: skill-creator scaffold generator lovstudio
 ---
 
-# lovstudio:skill-creator
+# lovstudio-skill-creator
 
 Scaffold a new lovstudio skill either as an **independent GitHub repo** under
 `lovstudio/{name}-skill` or as a bundled entry inside
@@ -67,12 +68,18 @@ Key facts:
 - Dev-skills source path: `~/lovstudio/coding/lovstudio-dev-skills/skills/{name}/`
 - Dev-skills catalog entry uses `repo: lovstudio/dev-skills` and `skill_path: skills/{name}`
 - Claude Code reads: `~/.claude/skills/lovstudio-{name}/` (with `lovstudio-` prefix, via symlink)
-- Frontmatter `name`: `lovstudio:{name}` (with `:` separator)
+- Frontmatter `name`: `lovstudio-{name}` (Agent Skills-compatible). Legacy
+  `lovstudio:{name}` names are kept only for older skills and should not be
+  copied into new templates.
 - Frontmatter `depends_on`: optional list of required skill names from those
   skills' own `SKILL.md` frontmatter. Use it when one skill must reuse another
   instead of duplicating implementation. In `skills.yaml`, use catalog names
   such as `find-logo`.
 - `paid: true/false` lives **only** in `lovstudio-general-skills/skills.yaml`, never in SKILL.md
+- User-specific paths, brand profiles, design guides, and output directories
+  must be initialized through explicit CLI flags, environment variables, or
+  `~/.config/agent-skills/profile.json`. Do not hard-code `/Users/mark` or
+  `~/lovstudio` in reusable workflows.
 
 ## Skill Creation Process
 
@@ -190,6 +197,25 @@ paid upgrades.
 - 纯指令 SKILL.md,还是需要 Python CLI 脚本?
 - (如果 Q1 选了 3:这一问跳过。cloud-split 的"实现"就是云端 handler,不是本地脚本。)
 
+#### Q4. User initialization layer — mandatory for reusable skills
+
+Ask whether the skill needs user-specific workspace, output, identity, brand,
+or design-guide settings. If yes, design the initialization layer before
+writing scripts:
+
+> 这个 skill 是否需要读取用户自己的工作区、品牌资料、设计规范或输出目录?
+>
+> 1. **No user config** — 只处理当前输入文件/当前目录。
+> 2. **User profile** — 需要用户初始化自己的 workspace/brand/output。
+> 3. **LovStudio internal only** — 明确只服务 Mark/LovStudio 私有工作区。
+
+Rules:
+- Option 1: no absolute user paths in SKILL.md or scripts.
+- Option 2: follow `references/user-config.md`; use CLI flags > env vars >
+  shared profile > safe defaults > ask once.
+- Option 3: mark `compatibility` and README as author-only, and keep all
+  LovStudio paths in one configuration section instead of scattering them.
+
 ### Protection model — what each tier actually buys you
 
 Be honest about what each tier protects against. Do not market encrypted skills
@@ -215,6 +241,9 @@ Rules:
 - Python scripts must be **standalone single-file CLIs** with `argparse`
 - No package structure, no `setup.py`, no `__init__.py`
 - CJK text handling is a core concern if the skill deals with documents
+- Any user-specific path, brand asset, design guide, or output root needs a
+  configuration plan. Read `references/user-config.md` and include
+  `references/user-config.md` in the scaffold for public/reusable skills.
 
 ### Step 3: Initialize
 
@@ -281,6 +310,10 @@ it ships.
      concrete trigger phrases (中文 + English)
    - Body contains workflow steps, CLI reference, field mappings
    - Use `AskUserQuestion` for interactive prompts before running scripts
+   - Add a user configuration section when the workflow touches paths,
+     personal data, brand assets, or workspace conventions
+   - Never assume `/Users/mark`, `~/lovstudio`, or a fixed `~/.claude` runtime
+     path in reusable workflow steps
    - Keep SKILL.md under 500 lines; split to `references/` if longer
 3. **Write README.md** — docs for humans on GitHub:
    - Version badge (source of truth for version)
@@ -290,6 +323,7 @@ it ships.
    - ASCII diagrams if useful
 
 See `references/templates.md` for SKILL.md / README.md templates.
+See `references/user-config.md` for the portable profile/env contract.
 
 ### Step 5: Publish
 
@@ -441,7 +475,7 @@ bundle entry.
 
 ### Step 6: Test & Iterate
 
-1. In a new conversation, invoke `/lovstudio:<name>` — confirm it triggers
+1. In a new conversation, invoke `lovstudio-<name>` or a documented trigger phrase — confirm it triggers
 2. Notice struggles → edit SKILL.md / scripts in the source repo
 3. Commit & push in the chosen target repo (independent repo or dev-skills)
 
@@ -481,39 +515,9 @@ For skills that fill or generate content:
 - Test files — scripts are tested by running, not with test frameworks
 - `__pycache__/`, `*.pyc`, `.DS_Store` — add to `.gitignore`
 - `paid` field in frontmatter — it lives only in `lovstudio-general-skills/skills.yaml`
+- Hard-coded personal paths such as `/Users/mark`, `~/lovstudio`, or private
+  LovStudio brand files in reusable workflows
 
 ## Migration Notes
 
-### 2026-05: dev-skills aggregate target
-
-Some free developer/meta skills should live directly in `lovstudio/dev-skills`
-instead of requiring a dedicated repo. Use `--target dev-skills` for those:
-
-```bash
-python3 ~/.claude/skills/lovstudio-skill-creator/scripts/init_skill.py tanstack-query --target dev-skills
-```
-
-The skill directory is `~/lovstudio/coding/lovstudio-dev-skills/skills/tanstack-query/`, and `skills.yaml`
-must include `repo: lovstudio/dev-skills` plus `skill_path: skills/tanstack-query`.
-
-### 2026-04: independent per-skill repos
-
-The ecosystem was refactored from a monorepo (`lovstudio/skills` containing
-`skills/lovstudio-<name>/`) + mirror (`lovstudio/pro-skills`) into independent
-per-skill repos + central index. The old `lovstudio/pro-skills` was archived.
-If working on a legacy skill still in the old structure, migrate it first:
-
-```bash
-# 1. Extract from monorepo subdirectory
-cp -r ~/projects/lovstudio-skills/skills/lovstudio-<name> \
-      ~/lovstudio/coding/skills/<name>-skill
-cd ~/lovstudio/coding/skills/<name>-skill
-# (remove the lovstudio- prefix from the directory by creating fresh)
-
-# 2. Fresh git history
-rm -rf .git
-git init && git add -A && git commit -m "import: <name> from monorepo"
-
-# 3. Create independent repo
-gh repo create lovstudio/<name>-skill --public --source=. --push
-```
+For historical repo-layout migrations, read `references/migration.md`.

@@ -4,19 +4,20 @@
 
 ```yaml
 ---
-name: lovstudio:<name>
+name: lovstudio-<name>
 description: >
   <What it does — 1-2 sentences.>
   <When to trigger — specific scenarios, file types, user phrases.>
   Also trigger when the user mentions "<中文触发词>", "<english trigger>".
 license: MIT
 compatibility: >
-  Requires Python 3.8+ and <library> (`pip install <library>`).
-  Cross-platform: macOS, Windows, Linux.
+  Portable Agent Skills format. Requires Python 3.8+ and <library>.
+  User-specific paths, brand assets, and workspace settings must come from
+  explicit CLI flags, environment variables, or the shared user profile.
 # Optional: declare required skill-level dependencies by exact SKILL.md
 # frontmatter name. Example:
 # depends_on:
-#   - lovstudio:<other-skill>
+#   - lovstudio-<other-skill>
 metadata:
   author: lovstudio
   version: "0.1.0"
@@ -27,6 +28,12 @@ metadata:
 
 <1-2 sentence overview.>
 
+## User Configuration
+
+This skill must not assume Mark's local workspace, `~/lovstudio`,
+`/Users/mark`, or a fixed Claude install path. If user-specific paths or brand
+settings are needed, follow `references/user-config.md`.
+
 ## When to Use
 
 - <Scenario 1>
@@ -34,10 +41,20 @@ metadata:
 
 ## Workflow (MANDATORY)
 
+### Step 0: Resolve skill root and user config
+
+```bash
+SKILL_DIR="${SKILL_DIR:-$HOME/.claude/skills/lovstudio-<name>}"
+```
+
+If user-specific fields are missing, ask once and map the answer to CLI flags,
+environment variables, or the shared profile described in
+`references/user-config.md`.
+
 ### Step 1: <First action>
 
 ```bash
-python3 ~/.claude/skills/lovstudio-<name>/scripts/<script>.py --flag value
+python3 "$SKILL_DIR/scripts/<script>.py" --flag value
 ```
 
 ### Step 2: Ask the user
@@ -47,7 +64,7 @@ python3 ~/.claude/skills/lovstudio-<name>/scripts/<script>.py --flag value
 ### Step 3: Execute
 
 ```bash
-python3 ~/.claude/skills/lovstudio-<name>/scripts/<script>.py --input <path> --output <path>
+python3 "$SKILL_DIR/scripts/<script>.py" --input <path> --output <path>
 ```
 
 ## CLI Reference
@@ -67,7 +84,7 @@ pip install <library> --break-system-packages
 ## README.md Template
 
 ```markdown
-# lovstudio:<name>
+# lovstudio-<name>
 
 ![Version](https://img.shields.io/badge/version-0.1.0-CC785C)
 
@@ -78,15 +95,27 @@ Part of [lovstudio general skills](https://github.com/lovstudio/general-skills) 
 ## Install
 
 ```bash
-git clone https://github.com/lovstudio/<name>-skill ~/.claude/skills/lovstudio-<name>
+git clone https://github.com/lovstudio/<name>-skill "${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}/lovstudio-<name>"
 ```
 
 Requires: Python 3.8+ and `pip install <library>`
 
+## Configuration
+
+This skill is portable by default. User-specific paths and brand settings should
+be provided through CLI flags, environment variables, or:
+
+```bash
+${AGENT_SKILL_PROFILE:-$HOME/.config/agent-skills/profile.json}
+```
+
+See `references/user-config.md`.
+
 ## Usage
 
 ```bash
-python3 ~/.claude/skills/lovstudio-<name>/scripts/<script>.py --input file.ext --output result.ext
+SKILL_DIR="${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}/lovstudio-<name>"
+python3 "$SKILL_DIR/scripts/<script>.py" --input file.ext --output result.ext
 ```
 
 ## Options
@@ -125,6 +154,13 @@ Or through Claude Code plugin marketplace:
 
 - Version source of truth: `README.md` badge. `SKILL.md` frontmatter
   `metadata.version` is kept in sync by `skill-optimizer`.
+- New skills use Agent Skills-compatible frontmatter names:
+  `lovstudio-<name>`. Legacy `lovstudio:<name>` skills should be migrated
+  opportunistically, not copied into new templates.
+- User-specific paths, workspaces, brand profiles, and design guides must be
+  initialized through `references/user-config.md`, environment variables, or
+  CLI flags. Do not hard-code `/Users/mark`, `~/lovstudio`, or private
+  LovStudio workspace paths in reusable workflow steps.
 - Start at `0.1.0`, not `1.0.0` — per repo release conventions (stay in 0.x
   unless explicitly promoted).
 - `paid` is **not** in SKILL.md frontmatter. It lives only in

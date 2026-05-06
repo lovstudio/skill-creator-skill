@@ -3,6 +3,15 @@
 All notable changes to this skill are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: [SemVer](https://semver.org/)
 
+## [2.3.0] - 2026-05-06
+
+### Added
+
+- add portable user configuration scaffolding
+- switch new templates to Agent Skills-compatible lovstudio-<name> frontmatter
+- generate references/user-config.md for new skills
+- move historical migration notes into references/migration.md for progressive disclosure
+
 ## [2.2.0] - 2026-05-06
 
 ### Added

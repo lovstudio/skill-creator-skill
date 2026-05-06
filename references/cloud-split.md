@@ -278,7 +278,7 @@ supabase functions deploy skill_call --project-ref nouchjcfeoobplxkwasg
 
 ```markdown
 ---
-name: lovstudio:<name>
+name: lovstudio-<name>
 description: <one line> ... Trigger when user says "...".
 version: 0.1.0
 ---
