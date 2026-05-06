@@ -21,7 +21,7 @@ compatibility: >
   Scaffolds into ~/lovstudio/coding/skills/. Requires Python 3.8+, git, and gh CLI.
 metadata:
   author: lovstudio
-  version: "2.3.0"
+  version: "2.6.0"
   tags: skill-creator scaffold generator lovstudio
 ---
 
@@ -78,7 +78,7 @@ Key facts:
 - `paid: true/false` lives **only** in `lovstudio-general-skills/skills.yaml`, never in SKILL.md
 - User-specific paths, brand profiles, design guides, and output directories
   must be initialized through explicit CLI flags, environment variables, or
-  `~/.config/agent-skills/profile.json`. Do not hard-code `/Users/mark` or
+  `~/.lovstudio/skills/profile.json`. Do not hard-code `/Users/mark` or
   `~/lovstudio` in reusable workflows.
 
 ## Skill Creation Process

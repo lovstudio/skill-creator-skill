@@ -1,6 +1,6 @@
 # lovstudio-skill-creator
 
-![Version](https://img.shields.io/badge/version-2.3.0-CC785C)
+![Version](https://img.shields.io/badge/version-2.6.0-CC785C)
 
 Scaffold new skills for the lovstudio ecosystem. Skills can be created as
 **independent GitHub repos** at `lovstudio/{name}-skill` or as bundled entries
@@ -103,7 +103,7 @@ The lovstudio skill ecosystem:
 
 User-specific paths, brand profiles, design guides, and output directories must
 come from explicit CLI flags, environment variables, or
-`${AGENT_SKILL_PROFILE:-$HOME/.config/agent-skills/profile.json}`.
+`${LOVSTUDIO_SKILLS_PROFILE:-$HOME/.lovstudio/skills/profile.json}`.
 Reusable skills must not hard-code `/Users/mark`, `~/lovstudio`, or private
 LovStudio workspace paths.
 

@@ -28,7 +28,7 @@ When a skill needs user-specific settings, resolve them in this order:
 Default profile path:
 
 ```bash
-${AGENT_SKILL_PROFILE:-$HOME/.config/agent-skills/profile.json}
+${LOVSTUDIO_SKILLS_PROFILE:-$HOME/.lovstudio/skills/profile.json}
 ```
 
 Recommended shape:
@@ -47,8 +47,8 @@ Recommended shape:
   "brand": {
     "name": "Your Brand",
     "site": "https://example.com",
-    "profile": "$HOME/.config/agent-skills/brand.json",
-    "design_guide": "$HOME/.config/agent-skills/design-guide.md"
+    "profile": "$HOME/.lovstudio/skills/brand.json",
+    "design_guide": "$HOME/.lovstudio/skills/design-guide.md"
   }
 }
 ```
@@ -57,11 +57,12 @@ Environment variable overrides:
 
 | Variable | Meaning |
 |----------|---------|
-| `AGENT_SKILL_PROFILE` | Shared profile JSON path |
-| `AGENT_SKILL_WORKSPACE_ROOT` | Workspace root |
-| `AGENT_SKILL_OUTPUT_DIR` | Default output directory |
-| `AGENT_SKILL_BRAND_PROFILE` | Brand profile JSON or Markdown |
-| `AGENT_SKILL_DESIGN_GUIDE` | Design guide path |
+| `LOVSTUDIO_SKILLS_PROFILE` | Shared profile JSON path |
+| `LOVSTUDIO_SKILLS_HOME` | Shared LovStudio skills config/data directory |
+| `LOVSTUDIO_SKILLS_WORKSPACE_ROOT` | Workspace root |
+| `LOVSTUDIO_SKILLS_OUTPUT_DIR` | Default output directory |
+| `LOVSTUDIO_SKILLS_BRAND_PROFILE` | Brand profile JSON or Markdown |
+| `LOVSTUDIO_SKILLS_DESIGN_GUIDE` | Design guide path |
 
 ## Refactor Pattern
 
@@ -75,8 +76,8 @@ Write output to `/Users/mark/lovstudio/output`.
 With this:
 
 ```markdown
-Resolve brand settings from `AGENT_SKILL_DESIGN_GUIDE` or the shared profile.
-Resolve output from `--output`, `AGENT_SKILL_OUTPUT_DIR`, or the shared profile.
+Resolve brand settings from `LOVSTUDIO_SKILLS_DESIGN_GUIDE` or the shared profile.
+Resolve output from `--output`, `LOVSTUDIO_SKILLS_OUTPUT_DIR`, or the shared profile.
 If neither exists, ask the user once and default to `$HOME/Documents`.
 ```
 

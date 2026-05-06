@@ -106,7 +106,7 @@ This skill is portable by default. User-specific paths and brand settings should
 be provided through CLI flags, environment variables, or:
 
 ```bash
-${AGENT_SKILL_PROFILE:-$HOME/.config/agent-skills/profile.json}
+${LOVSTUDIO_SKILLS_PROFILE:-$HOME/.lovstudio/skills/profile.json}
 ```
 
 See `references/user-config.md`.

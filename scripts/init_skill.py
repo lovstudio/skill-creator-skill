@@ -129,7 +129,7 @@ This skill is portable by default. User-specific paths and brand settings should
 be provided through CLI flags, environment variables, or:
 
 ```bash
-${{AGENT_SKILL_PROFILE:-$HOME/.config/agent-skills/profile.json}}
+${{LOVSTUDIO_SKILLS_PROFILE:-$HOME/.lovstudio/skills/profile.json}}
 ```
 
 See `references/user-config.md`.
@@ -182,7 +182,7 @@ This skill is portable by default. User-specific paths and brand settings should
 be provided through CLI flags, environment variables, or:
 
 ```bash
-${{AGENT_SKILL_PROFILE:-$HOME/.config/agent-skills/profile.json}}
+${{LOVSTUDIO_SKILLS_PROFILE:-$HOME/.lovstudio/skills/profile.json}}
 ```
 
 See `references/user-config.md`.
@@ -236,7 +236,7 @@ assets.
 Default profile path:
 
 ```bash
-${{AGENT_SKILL_PROFILE:-$HOME/.config/agent-skills/profile.json}}
+${{LOVSTUDIO_SKILLS_PROFILE:-$HOME/.lovstudio/skills/profile.json}}
 ```
 
 Example:
@@ -255,8 +255,8 @@ Example:
   "brand": {{
     "name": "Your Brand",
     "site": "https://example.com",
-    "profile": "$HOME/.config/agent-skills/brand.json",
-    "design_guide": "$HOME/.config/agent-skills/design-guide.md"
+    "profile": "$HOME/.lovstudio/skills/brand.json",
+    "design_guide": "$HOME/.lovstudio/skills/design-guide.md"
   }}
 }}
 ```
@@ -265,11 +265,12 @@ Environment variable overrides:
 
 | Variable | Meaning |
 |----------|---------|
-| `AGENT_SKILL_PROFILE` | Path to the shared profile JSON |
-| `AGENT_SKILL_WORKSPACE_ROOT` | User workspace root |
-| `AGENT_SKILL_OUTPUT_DIR` | Default generated output directory |
-| `AGENT_SKILL_BRAND_PROFILE` | Brand profile JSON or Markdown |
-| `AGENT_SKILL_DESIGN_GUIDE` | Design guide path |
+| `LOVSTUDIO_SKILLS_PROFILE` | Path to the shared profile JSON |
+| `LOVSTUDIO_SKILLS_HOME` | Shared LovStudio skills config/data directory |
+| `LOVSTUDIO_SKILLS_WORKSPACE_ROOT` | User workspace root |
+| `LOVSTUDIO_SKILLS_OUTPUT_DIR` | Default generated output directory |
+| `LOVSTUDIO_SKILLS_BRAND_PROFILE` | Brand profile JSON or Markdown |
+| `LOVSTUDIO_SKILLS_DESIGN_GUIDE` | Design guide path |
 
 ## Implementation Notes
 

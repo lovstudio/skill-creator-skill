@@ -3,6 +3,30 @@
 All notable changes to this skill are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: [SemVer](https://semver.org/)
 
+## [2.6.0] - 2026-05-07
+
+### Added
+
+- standardize config env vars on LOVSTUDIO_SKILLS namespace
+- replace AGENT_SKILL_* in generated templates
+- keep defaults under ~/.lovstudio/skills
+
+## [2.5.0] - 2026-05-07
+
+### Added
+
+- move default skill profile under ~/.lovstudio
+- keep AGENT_SKILL_PROFILE as the portable override
+- default generated brand/design config paths to ~/.lovstudio/skills
+
+## [2.4.0] - 2026-05-07
+
+### Added
+
+- switch public config contract to AGENT_SKILL profile
+- replace LovStudio-prefixed profile paths in new-skill templates
+- keep LovStudio paths as private authoring examples, not reusable runtime API
+
 ## [2.3.0] - 2026-05-06
 
 ### Added
