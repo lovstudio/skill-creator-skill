@@ -1,6 +1,6 @@
 # lovstudio-skill-creator
 
-![Version](https://img.shields.io/badge/version-2.6.0-CC785C)
+![Version](https://img.shields.io/badge/version-2.6.1-CC785C)
 
 Scaffold new skills for the lovstudio ecosystem. Skills can be created as
 **independent GitHub repos** at `lovstudio/{name}-skill` or as bundled entries

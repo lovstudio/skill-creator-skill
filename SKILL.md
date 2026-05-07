@@ -21,7 +21,7 @@ compatibility: >
   Scaffolds into ~/lovstudio/coding/skills/. Requires Python 3.8+, git, and gh CLI.
 metadata:
   author: lovstudio
-  version: "2.6.0"
+  version: "2.6.1"
   tags: skill-creator scaffold generator lovstudio
 ---
 
@@ -324,6 +324,7 @@ it ships.
 
 See `references/templates.md` for SKILL.md / README.md templates.
 See `references/user-config.md` for the portable profile/env contract.
+See `references/skill-standard.md` for the current LovStudio skill standard.
 
 ### Step 5: Publish
 
