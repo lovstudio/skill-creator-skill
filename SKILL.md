@@ -18,10 +18,12 @@ description: >
   "new skill", "add skill", "scaffold skill", "生成skill".
 license: MIT
 compatibility: >
-  Scaffolds into ~/lovstudio/coding/skills/. Requires Python 3.8+, git, and gh CLI.
+  Scaffolds into a configured skills workspace. Requires Python 3.8+, git,
+  and gh CLI. Source roots resolve from --path, LOVSTUDIO_SKILL_CREATOR_* env
+  vars, or the shared profile JSON.
 metadata:
   author: lovstudio
-  version: "2.6.1"
+  version: "2.7.0"
   tags: skill-creator scaffold generator lovstudio
 ---
 
@@ -36,7 +38,7 @@ developer skill bundle.
 ## Architecture
 
 ```
-~/lovstudio/coding/
+<configured workspace>/
 ├── lovstudio-general-skills/     ← general skills index (lovstudio/general-skills repo)
 │   ├── skills.yaml                ← machine-readable manifest (paid flag lives here)
 │   └── README.md                  ← human-readable catalog
@@ -57,17 +59,18 @@ developer skill bundle.
 │       └── references/            ← optional progressive-disclosure docs
 └── ...
 
-~/.claude/skills/lovstudio-{name}  ← symlink → ~/.agents/skills/lovstudio-{name}
-                                                 → ~/lovstudio/coding/skills/{name}-skill/
+<agent skills dir>/lovstudio-{name}  ← install or symlink to the source checkout
 ```
 
 Key facts:
 - Default GitHub repo name: `lovstudio/{name}-skill` (with `-skill` suffix)
-- Default local source path: `~/lovstudio/coding/skills/{name}-skill/` (no `lovstudio-` prefix)
-- General skills checkout path: `~/lovstudio/coding/lovstudio-general-skills/`
-- Dev-skills source path: `~/lovstudio/coding/lovstudio-dev-skills/skills/{name}/`
+- Default local source root: `LOVSTUDIO_SKILL_CREATOR_REPOS_ROOT`, profile
+  `lovstudio.skill_repos_root`, or the current directory.
+- General skills checkout path: configured by the maintainer's local checkout.
+- Dev-skills source root: `LOVSTUDIO_SKILL_CREATOR_DEV_SKILLS_ROOT`, profile
+  `lovstudio.dev_skills_root`, or a detected dev-skills checkout.
 - Dev-skills catalog entry uses `repo: lovstudio/dev-skills` and `skill_path: skills/{name}`
-- Claude Code reads: `~/.claude/skills/lovstudio-{name}/` (with `lovstudio-` prefix, via symlink)
+- Agent runtimes read an installed directory named `lovstudio-{name}/`.
 - Frontmatter `name`: `lovstudio-{name}` (Agent Skills-compatible). Legacy
   `lovstudio:{name}` names are kept only for older skills and should not be
   copied into new templates.
@@ -78,8 +81,8 @@ Key facts:
 - `paid: true/false` lives **only** in `lovstudio-general-skills/skills.yaml`, never in SKILL.md
 - User-specific paths, brand profiles, design guides, and output directories
   must be initialized through explicit CLI flags, environment variables, or
-  `~/.lovstudio/skills/profile.json`. Do not hard-code `/Users/mark` or
-  `~/lovstudio` in reusable workflows.
+  `~/.lovstudio/skills/profile.json`. Do not hard-code personal workspace
+  paths in reusable workflows.
 
 ## Skill Creation Process
 
@@ -116,9 +119,9 @@ the source live and how is it distributed?"
 
 > 这个 skill 放在哪里分发?
 >
-> 1. **Independent repo (default)** — `~/lovstudio/coding/skills/{name}-skill/`
+> 1. **Independent repo (default)** — `<configured repos root>/{name}-skill/`
 >    → `lovstudio/{name}-skill` → general `lovstudio/general-skills` index.
-> 2. **dev-skills bundle** — `~/lovstudio/coding/lovstudio-dev-skills/skills/{name}/`
+> 2. **dev-skills bundle** — `<configured dev-skills root>/{name}/`
 >    → `lovstudio/dev-skills` → bundled install via `npx skills add lovstudio/dev-skills`
 >    or Claude Code plugin marketplace.
 >
@@ -224,7 +227,7 @@ as "IP protection" — it's a gate, not a vault.
 | Tier | Protects against | Does NOT protect against |
 |---|---|---|
 | Free | 无 | 无 |
-| Paid / encrypted | 路人 `git clone` 就能用(L1) | 技术用户 grep `~/.claude/projects/*.jsonl` 取回明文(L2) |
+| Paid / encrypted | 路人 `git clone` 就能用(L1) | 技术用户从本地对话日志取回明文(L2) |
 | Paid / cloud-split | L1 + L2 + 反汇编客户端 | 反向推理 I/O 做劣质 clone |
 
 核心逻辑真正不下发到用户机器的 **只有 cloud-split**。其他 tier 都不要对用户承诺"加密保护"。
@@ -250,16 +253,16 @@ Rules:
 Run the init script. Independent repo is the default:
 
 ```bash
-python3 ~/.claude/skills/lovstudio-skill-creator/scripts/init_skill.py <name>
+python3 "$SKILL_DIR/scripts/init_skill.py" <name>
 ```
 
 For a dev-skills bundled skill:
 
 ```bash
-python3 ~/.claude/skills/lovstudio-skill-creator/scripts/init_skill.py <name> --target dev-skills
+python3 "$SKILL_DIR/scripts/init_skill.py" <name> --target dev-skills
 ```
 
-Independent repo creates `~/lovstudio/coding/skills/{name}-skill/` with:
+Independent repo creates `<configured repos root>/{name}-skill/` with:
 
 ```
 {name}-skill/
@@ -268,7 +271,7 @@ Independent repo creates `~/lovstudio/coding/skills/{name}-skill/` with:
 └── scripts/          ← empty, ready for implementation
 ```
 
-Dev-skills creates `~/lovstudio/coding/lovstudio-dev-skills/skills/{name}/` with
+Dev-skills creates `<configured dev-skills root>/{name}/` with
 the same skill-internal structure.
 
 Pass `--paid` if this is a paid skill (adjusts README + metadata hints).
@@ -283,7 +286,7 @@ your real logic in `scripts/`. Instead:
    `paid-add` is an architecture demo with an intentionally leaky payload
    (for teaching). Copying its return shape into a real skill defeats the
    whole point of cloud-split.
-3. Write the handler at `~/lovstudio/coding/web/supabase/functions/skill_call/handlers/<name>.ts`
+3. Write the handler in the configured web repo's `supabase/functions/skill_call/handlers/<name>.ts`
    — return a minimal symbolic payload (`{verdict: "A" | "B"}` style), not
    descriptive strings or narrative `display` fields
 4. Write the thin SKILL.md per the `threshold-check` template — rendering
@@ -312,12 +315,12 @@ it ships.
    - Use `AskUserQuestion` for interactive prompts before running scripts
    - Add a user configuration section when the workflow touches paths,
      personal data, brand assets, or workspace conventions
-   - Never assume `/Users/mark`, `~/lovstudio`, or a fixed `~/.claude` runtime
-     path in reusable workflow steps
+   - Never assume personal workspace paths or a fixed agent runtime path in
+     reusable workflow steps
    - Keep SKILL.md under 500 lines; split to `references/` if longer
 3. **Write README.md** — docs for humans on GitHub:
    - Version badge (source of truth for version)
-   - Install command: `git clone https://github.com/lovstudio/{name}-skill ~/.claude/skills/lovstudio-{name}`
+   - Install command using the user's chosen agent skills directory
    - Dependencies
    - Usage examples, options table
    - ASCII diagrams if useful
@@ -335,7 +338,7 @@ Follow the branch matching Q1.5.
 #### 5a. Initialize & push the skill's own repo
 
 ```bash
-cd ~/lovstudio/coding/skills/<name>-skill
+cd <configured-repos-root>/<name>-skill
 git init
 git add -A
 git commit -m "feat: initial release of <name> skill"
@@ -349,7 +352,7 @@ gh repo create lovstudio/<name>-skill --private --source=. --push
 
 #### 5b. Register in the general-skills index
 
-Edit `~/lovstudio/coding/lovstudio-general-skills/skills.yaml` — append under the right
+Edit the configured `lovstudio-general-skills/skills.yaml` — append under the right
 category (category order in the yaml determines display order on the website):
 
 ```yaml
@@ -361,11 +364,11 @@ category (category order in the yaml determines display order on the website):
     description: "<One-line description matching SKILL.md tagline>"
 ```
 
-Also add a row to `~/lovstudio/coding/lovstudio-general-skills/README.md` under the matching
+Also add a row to the configured `lovstudio-general-skills/README.md` under the matching
 category section. Then PR against `lovstudio/general-skills`:
 
 ```bash
-cd ~/lovstudio/coding/lovstudio-general-skills
+cd <general-skills-checkout>
 git checkout -b add/<name>
 git add skills.yaml README.md
 git commit -m "add: <name> skill"
@@ -373,21 +376,10 @@ git push -u origin HEAD
 gh pr create --fill
 ```
 
-#### 5c. Symlink for local availability
+#### 5c. Install for local availability
 
-Make the skill immediately usable in Claude Code:
-
-```bash
-# Layer 1: source → .agents
-ln -s ~/lovstudio/coding/skills/<name>-skill \
-      ~/.agents/skills/lovstudio-<name>
-
-# Layer 2: .agents → .claude/skills (where Claude Code reads)
-ln -s ../../.agents/skills/lovstudio-<name> \
-      ~/.claude/skills/lovstudio-<name>
-```
-
-Verify: `ls ~/.claude/skills/lovstudio-<name>/SKILL.md` resolves.
+Make the skill immediately usable by installing or symlinking the source
+checkout into the user's agent skills directory as `lovstudio-<name>`.
 
 #### 5d. Trigger lovstudio.ai cache refresh (optional)
 
@@ -419,14 +411,14 @@ Use this for free Meta / Dev Tools skills that belong in the
 #### 5a. Commit inside dev-skills
 
 ```bash
-cd ~/lovstudio/coding/lovstudio-dev-skills
+cd <dev-skills-checkout>
 git checkout -b add/<name>
 git add skills/<name>
 ```
 
 #### 5b. Register in dev-skills metadata
 
-Edit `~/lovstudio/coding/lovstudio-dev-skills/skills.yaml`:
+Edit the configured `lovstudio-dev-skills/skills.yaml`:
 
 ```yaml
 - name: <name>
@@ -452,14 +444,10 @@ Then render the READMEs:
 python3 scripts/render-readme.py
 ```
 
-#### 5c. Symlink for local availability
+#### 5c. Install for local availability
 
-```bash
-ln -s ~/lovstudio/coding/lovstudio-dev-skills/skills/<name> \
-      ~/.agents/skills/lovstudio-<name>
-ln -s ../../.agents/skills/lovstudio-<name> \
-      ~/.claude/skills/lovstudio-<name>
-```
+Install or symlink the bundled skill directory into the user's agent skills
+directory as `lovstudio-<name>`.
 
 #### 5d. Commit and push
 
@@ -470,7 +458,7 @@ git push -u origin HEAD
 gh pr create --fill
 ```
 
-Do not register dev-skills-only skills in the general-skills index `~/lovstudio/coding/lovstudio-general-skills/`
+Do not register dev-skills-only skills in the general-skills index
 unless the user explicitly asks for the main Lovstudio skills index to list the
 bundle entry.
 
@@ -516,8 +504,8 @@ For skills that fill or generate content:
 - Test files — scripts are tested by running, not with test frameworks
 - `__pycache__/`, `*.pyc`, `.DS_Store` — add to `.gitignore`
 - `paid` field in frontmatter — it lives only in `lovstudio-general-skills/skills.yaml`
-- Hard-coded personal paths such as `/Users/mark`, `~/lovstudio`, or private
-  LovStudio brand files in reusable workflows
+- Hard-coded personal workspace paths or private LovStudio brand files in
+  reusable workflows
 
 ## Migration Notes
 

@@ -69,6 +69,7 @@ Environment variables override profile fields:
 |----------|---------|
 | `LOVSTUDIO_SKILLS_PROFILE` | Path to the shared profile JSON |
 | `LOVSTUDIO_SKILLS_HOME` | Shared LovStudio skills config/data directory |
+| `LOVSTUDIO_SKILLS_INSTALL_DIR` | User's local agent skills installation directory |
 | `LOVSTUDIO_SKILLS_WORKSPACE_ROOT` | User workspace root |
 | `LOVSTUDIO_SKILLS_OUTPUT_DIR` | Default generated output directory |
 | `LOVSTUDIO_SKILLS_BRAND_PROFILE` | Brand profile JSON or Markdown |

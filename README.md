@@ -1,6 +1,6 @@
 # lovstudio-skill-creator
 
-![Version](https://img.shields.io/badge/version-2.6.1-CC785C)
+![Version](https://img.shields.io/badge/version-2.7.0-CC785C)
 
 Scaffold new skills for the lovstudio ecosystem. Skills can be created as
 **independent GitHub repos** at `lovstudio/{name}-skill` or as bundled entries
@@ -13,7 +13,7 @@ Part of [lovstudio general skills](https://github.com/lovstudio/general-skills) 
 ## Install
 
 ```bash
-git clone https://github.com/lovstudio/skill-creator-skill ~/.claude/skills/lovstudio-skill-creator
+git clone https://github.com/lovstudio/skill-creator-skill "${LOVSTUDIO_SKILLS_INSTALL_DIR:?Set LOVSTUDIO_SKILLS_INSTALL_DIR}/lovstudio-skill-creator"
 ```
 
 ## What It Does
@@ -27,7 +27,7 @@ git clone https://github.com/lovstudio/skill-creator-skill ~/.claude/skills/lovs
 ┌────────────────────────────────────────────────────────────┐
 │  init_skill.py wcx                                          │
 │                                                             │
-│  ~/lovstudio/coding/skills/wcx-skill/                       │
+│  <configured repos root>/wcx-skill/                         │
 │  ├── SKILL.md      ← AI reads this                          │
 │  ├── README.md     ← Humans read this on GitHub             │
 │  ├── .gitignore                                             │
@@ -39,7 +39,7 @@ git clone https://github.com/lovstudio/skill-creator-skill ~/.claude/skills/lovs
 ┌────────────────────────────────────────────────────────────┐
 │  Implement → gh repo create lovstudio/wcx-skill --push      │
 │           → PR into lovstudio-general-skills/skills.yaml + lovstudio-general-skills/README.md     │
-│           → symlink to ~/.claude/skills/lovstudio-wcx       │
+│           → install or symlink as lovstudio-wcx             │
 └────────────────────────────────────────────────────────────┘
 
 Dev-skills bundle target:
@@ -47,7 +47,7 @@ Dev-skills bundle target:
 ┌────────────────────────────────────────────────────────────┐
 │  init_skill.py tanstack-query --target dev-skills           │
 │                                                             │
-│  ~/lovstudio/coding/lovstudio-dev-skills/skills/tanstack-query/│
+│  <configured dev-skills root>/tanstack-query/               │
 │  ├── SKILL.md                                               │
 │  ├── README.md                                              │
 │  ├── .gitignore                                             │
@@ -63,9 +63,9 @@ Dev-skills bundle target:
 
 ```bash
 # Scaffold
-python3 ~/.claude/skills/lovstudio-skill-creator/scripts/init_skill.py wcx
+python3 "$SKILL_DIR/scripts/init_skill.py" wcx
 
-# → ~/lovstudio/coding/skills/wcx-skill/
+# → <configured repos root>/wcx-skill/
 #     ├── SKILL.md       (TODO placeholders)
 #     ├── README.md      (version badge + install stub)
 #     ├── .gitignore
@@ -75,18 +75,18 @@ python3 ~/.claude/skills/lovstudio-skill-creator/scripts/init_skill.py wcx
 
 ```bash
 # Scaffold a free Meta / Dev Tools skill into lovstudio/dev-skills
-python3 ~/.claude/skills/lovstudio-skill-creator/scripts/init_skill.py tanstack-query --target dev-skills
+python3 "$SKILL_DIR/scripts/init_skill.py" tanstack-query --target dev-skills
 
-# → ~/lovstudio/coding/lovstudio-dev-skills/skills/tanstack-query/
+# → <configured dev-skills root>/tanstack-query/
 ```
 
 Then:
 
 1. Implement `scripts/` and fill the TODOs in `SKILL.md` / `README.md`
-2. For independent repos: `cd ~/lovstudio/coding/skills/wcx-skill && git init && git add -A && git commit -m "feat: initial release"`
+2. For independent repos: `cd <configured repos root>/wcx-skill && git init && git add -A && git commit -m "feat: initial release"`
 3. For independent repos: `gh repo create lovstudio/wcx-skill --public --source=. --push`
-4. For dev-skills: edit `~/lovstudio/coding/lovstudio-dev-skills/skills.yaml`, update `.claude-plugin/marketplace.json`, then run `python3 scripts/render-readme.py`
-5. Symlink into `~/.claude/skills/lovstudio-<name>` for local use
+4. For dev-skills: edit the configured `lovstudio-dev-skills/skills.yaml`, update `.claude-plugin/marketplace.json`, then run `python3 scripts/render-readme.py`
+5. Install or symlink into your agent skills directory as `lovstudio-<name>`
 
 ## Architecture
 
@@ -94,18 +94,18 @@ The lovstudio skill ecosystem:
 
 | Layer | Location | Purpose |
 |-------|----------|---------|
-| General skills index | `lovstudio/general-skills` repo & `~/lovstudio/coding/lovstudio-general-skills/` | `skills.yaml` + human README; consumed by agentskills.io & lovstudio.ai/agent |
-| Per-skill repo | `lovstudio/{name}-skill` & `~/lovstudio/coding/skills/{name}-skill/` | All skill code + SKILL.md + README.md + CHANGELOG.md |
-| Dev skills bundle | `lovstudio/dev-skills` & `~/lovstudio/coding/lovstudio-dev-skills/skills/{name}/` | Free Meta / Dev Tools skills installed together |
-| Local Claude Code | `~/.claude/skills/lovstudio-{name}/` | Symlink chain into the per-skill repo |
+| General skills index | `lovstudio/general-skills` repo & configured checkout | `skills.yaml` + human README; consumed by agentskills.io & lovstudio.ai/agent |
+| Per-skill repo | `lovstudio/{name}-skill` & configured repos root | All skill code + SKILL.md + README.md + CHANGELOG.md |
+| Dev skills bundle | `lovstudio/dev-skills` & configured dev-skills root | Free Meta / Dev Tools skills installed together |
+| Local agent runtime | agent-specific skills directory | Installed or symlinked `lovstudio-{name}` directory |
 
 `paid: true/false` lives **only** in `lovstudio-general-skills/skills.yaml` — never in SKILL.md.
 
 User-specific paths, brand profiles, design guides, and output directories must
 come from explicit CLI flags, environment variables, or
 `${LOVSTUDIO_SKILLS_PROFILE:-$HOME/.lovstudio/skills/profile.json}`.
-Reusable skills must not hard-code `/Users/mark`, `~/lovstudio`, or private
-LovStudio workspace paths.
+Reusable skills must not hard-code personal workspace paths or private
+LovStudio workspace assumptions.
 
 ## Differences from Official skill-creator
 

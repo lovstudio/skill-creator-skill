@@ -3,6 +3,14 @@
 All notable changes to this skill are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: [SemVer](https://semver.org/)
 
+## [2.7.0] - 2026-05-07
+
+### Added
+
+- make scaffold roots profile driven
+- resolve source roots from LOVSTUDIO_SKILL_CREATOR_* env vars or shared profile before safe fallbacks
+- remove personal workspace and fixed agent runtime paths from generated templates
+
 ## [2.6.1] - 2026-05-07
 
 ### Fixed

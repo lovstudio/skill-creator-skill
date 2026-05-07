@@ -9,19 +9,25 @@ Usage:
     python3 init_skill.py <name> --dev-skills
     python3 init_skill.py <name> --path /custom/path
 
-Creates ~/lovstudio/coding/skills/<name>-skill/ by default.
-With --target dev-skills, creates
-~/lovstudio/coding/lovstudio-dev-skills/skills/<name>/.
-
 Examples:
-    python3 init_skill.py fill-form   → ~/lovstudio/coding/skills/fill-form-skill/
-    python3 init_skill.py any2pptx    → ~/lovstudio/coding/skills/any2pptx-skill/
+    python3 init_skill.py fill-form
+        → <configured repos root>/fill-form-skill/
+    python3 init_skill.py any2pptx
+        → <configured repos root>/any2pptx-skill/
     python3 init_skill.py tanstack-query --target dev-skills
-        → ~/lovstudio/coding/lovstudio-dev-skills/skills/tanstack-query/
+        → <configured dev-skills root>/tanstack-query/
+
+Default base directories resolve from --path, LOVSTUDIO_SKILL_CREATOR_* env
+vars, the shared profile JSON, then a safe current-directory fallback.
 """
 
-import sys, argparse, re
+import argparse
+import json
+import os
+import re
+import sys
 from pathlib import Path
+from typing import Optional, Tuple
 
 SKILL_MD = '''---
 name: lovstudio-{name}
@@ -50,9 +56,9 @@ TODO: 1-2 sentence overview.
 
 ## User Configuration
 
-This skill must not assume Mark's local workspace, `~/lovstudio`, `/Users/mark`,
-or a fixed Claude install path. If user-specific paths or brand settings are
-needed, follow `references/user-config.md`.
+This skill must not assume a private workspace, personal absolute paths, or a
+fixed agent runtime path. If user-specific paths or brand settings are needed,
+follow `references/user-config.md`.
 
 ## When to Use
 
@@ -67,10 +73,10 @@ needed, follow `references/user-config.md`.
 
 - Use `SKILL_DIR` if the environment provides it.
 - Otherwise infer the installed skill directory from the current skill context.
-- When running scripts manually, set:
+- When running scripts manually, set it explicitly:
 
 ```bash
-SKILL_DIR="${{SKILL_DIR:-$HOME/.claude/skills/lovstudio-{name}}}"
+export SKILL_DIR="/path/to/lovstudio-{name}"
 ```
 
 If user-specific fields are missing, ask once and map the answer to CLI flags,
@@ -118,7 +124,7 @@ Part of [lovstudio general skills](https://github.com/lovstudio/general-skills) 
 ## Install
 
 ```bash
-git clone https://github.com/lovstudio/{name}-skill "${{CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}}/lovstudio-{name}"
+git clone https://github.com/lovstudio/{name}-skill "${{LOVSTUDIO_SKILLS_INSTALL_DIR:?Set LOVSTUDIO_SKILLS_INSTALL_DIR}}/lovstudio-{name}"
 ```
 
 Requires: Python 3.8+ and `pip install TODO`
@@ -137,7 +143,7 @@ See `references/user-config.md`.
 ## Usage
 
 ```bash
-SKILL_DIR="${{CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}}/lovstudio-{name}"
+SKILL_DIR="${{LOVSTUDIO_SKILLS_INSTALL_DIR:?Set LOVSTUDIO_SKILLS_INSTALL_DIR}}/lovstudio-{name}"
 python3 "$SKILL_DIR/scripts/TODO.py" --input file.ext --output result.ext
 ```
 
@@ -190,7 +196,7 @@ See `references/user-config.md`.
 ## Usage
 
 ```bash
-SKILL_DIR="${{CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}}/lovstudio-{name}"
+SKILL_DIR="${{LOVSTUDIO_SKILLS_INSTALL_DIR:?Set LOVSTUDIO_SKILLS_INSTALL_DIR}}/lovstudio-{name}"
 python3 "$SKILL_DIR/scripts/TODO.py" --input file.ext --output result.ext
 ```
 
@@ -220,8 +226,7 @@ node_modules/
 USER_CONFIG_MD = '''# User Configuration
 
 This skill follows the portable agent skill profile contract. It must not
-assume Mark's local workspace, `~/lovstudio`, `/Users/mark`, or private brand
-assets.
+assume a private workspace, personal absolute paths, or private brand assets.
 
 ## Resolution Order
 
@@ -276,8 +281,95 @@ Environment variable overrides:
 
 - Scripts should accept explicit paths via CLI flags.
 - Missing profile fields should produce actionable errors.
-- LovStudio/Mark defaults belong in an optional profile, not in the workflow.
+- LovStudio maintainer defaults belong in an optional profile, not in the workflow.
 '''
+
+
+def _expand_path(value: str) -> Path:
+    return Path(os.path.expandvars(value)).expanduser()
+
+
+def _nested(data: dict, dotted: str) -> Optional[str]:
+    cur = data
+    for part in dotted.split("."):
+        if not isinstance(cur, dict) or part not in cur:
+            return None
+        cur = cur[part]
+    return str(cur) if cur else None
+
+
+def _load_profile() -> Tuple[Path, dict]:
+    profile = _expand_path(
+        os.environ.get("LOVSTUDIO_SKILLS_PROFILE")
+        or str(Path.home() / ".lovstudio/skills/profile.json")
+    )
+    if not profile.exists():
+        return profile, {}
+    try:
+        return profile, json.loads(profile.read_text())
+    except json.JSONDecodeError as exc:
+        print(f"ERROR: invalid JSON in {profile}: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+
+def _profile_first(data: dict, keys: Tuple[str, ...]) -> Optional[str]:
+    for key in keys:
+        value = _nested(data, key)
+        if value:
+            return value
+    return None
+
+
+def _default_dev_skills_base(cwd: Path) -> Optional[Path]:
+    if cwd.name == "skills" and (cwd.parent / "skills.yaml").exists():
+        return cwd
+    if (cwd / "skills.yaml").exists() and (cwd / "skills").is_dir():
+        return cwd / "skills"
+    return None
+
+
+def resolve_base(target: str, cli_path: str) -> Path:
+    if cli_path:
+        return _expand_path(cli_path)
+
+    profile_path, profile = _load_profile()
+    if target == "dev-skills":
+        env_key = "LOVSTUDIO_SKILL_CREATOR_DEV_SKILLS_ROOT"
+        profile_keys = (
+            "lovstudio.dev_skills_root",
+            "skills.dev_skills_root",
+            "workspace.dev_skills_root",
+        )
+    else:
+        env_key = "LOVSTUDIO_SKILL_CREATOR_REPOS_ROOT"
+        profile_keys = (
+            "lovstudio.skill_repos_root",
+            "skills.repos_root",
+            "workspace.skill_repos_root",
+            "workspace.skills_root",
+        )
+
+    if os.environ.get(env_key):
+        return _expand_path(os.environ[env_key])
+
+    profile_value = _profile_first(profile, profile_keys)
+    if profile_value:
+        return _expand_path(profile_value)
+
+    cwd = Path.cwd()
+    if target == "repo":
+        return cwd
+
+    dev_base = _default_dev_skills_base(cwd)
+    if dev_base:
+        return dev_base
+
+    print(
+        "ERROR: dev-skills target needs --path, LOVSTUDIO_SKILL_CREATOR_DEV_SKILLS_ROOT, "
+        f"or a dev_skills_root value in {profile_path}",
+        file=sys.stderr,
+    )
+    sys.exit(1)
 
 
 def main():
@@ -298,8 +390,8 @@ def main():
         "--path",
         default="",
         help=(
-            "Custom base directory. For --target repo, defaults to ~/lovstudio/coding/skills/. "
-            "For --target dev-skills, defaults to ~/lovstudio/coding/lovstudio-dev-skills/skills/."
+            "Custom base directory. Defaults resolve from LOVSTUDIO_SKILL_CREATOR_* env, "
+            "the shared profile JSON, then a safe current-directory fallback."
         ),
     )
     ap.add_argument("--paid", action="store_true", help="Mark as paid in hints (actual paid flag lives in lovstudio-general-skills/skills.yaml)")
@@ -324,12 +416,7 @@ def main():
         print("ERROR: --target dev-skills is only for free Meta / Dev Tools skills. Use the default independent repo target for paid skills.", file=sys.stderr)
         sys.exit(1)
 
-    if args.path:
-        base = Path(args.path)
-    elif target == "dev-skills":
-        base = Path.home() / "lovstudio" / "coding" / "lovstudio-dev-skills" / "skills"
-    else:
-        base = Path.home() / "lovstudio" / "coding" / "skills"
+    base = resolve_base(target, args.path)
     base.mkdir(parents=True, exist_ok=True)
     skill_dir = base / name if target == "dev-skills" else base / f"{name}-skill"
 
@@ -368,9 +455,7 @@ def main():
         print("         version: \"0.1.0\"")
         print(f"  4. Add ./skills/{name} to .claude-plugin/marketplace.json under meta or dev-tools")
         print("  5. python3 scripts/render-readme.py")
-        print("  6. Symlink:")
-        print(f"       ln -s {skill_dir} ~/.agents/skills/lovstudio-{name}")
-        print(f"       ln -s ../../.agents/skills/lovstudio-{name} ~/.claude/skills/lovstudio-{name}")
+        print(f"  6. Install or symlink {skill_dir} into your agent's skills directory as lovstudio-{name}")
         print(f"  7. git add skills.yaml README.md README.en.md .claude-plugin/marketplace.json skills/{name}")
         print(f"     git commit -m 'add: {name} skill'")
     else:
@@ -379,11 +464,9 @@ def main():
         print(f"  3. git init && git add -A && git commit -m 'feat: initial release of {name} skill'")
         visibility = "--private" if args.paid else "--public"
         print(f"  4. gh repo create lovstudio/{name}-skill {visibility} --source=. --push")
-        print(f"  5. Symlink:")
-        print(f"       ln -s {skill_dir} ~/.agents/skills/lovstudio-{name}")
-        print(f"       ln -s ../../.agents/skills/lovstudio-{name} ~/.claude/skills/lovstudio-{name}")
+        print(f"  5. Install or symlink {skill_dir} into your agent's skills directory as lovstudio-{name}")
         paid_flag = "true" if args.paid else "false"
-        print(f"  6. Register in ~/lovstudio/coding/lovstudio-general-skills/skills.yaml (paid: {paid_flag})")
+        print(f"  6. Register in your general-skills checkout skills.yaml (paid: {paid_flag})")
 
 
 if __name__ == "__main__":
